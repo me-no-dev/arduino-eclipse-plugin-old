@@ -27,79 +27,55 @@ import org.eclipse.ui.PlatformUI;
  * 
  */
 class BuildJobHandler extends Job {
-    IProject myBuildProject = null;
+  IProject myBuildProject = null;
 
-    public BuildJobHandler(String name) {
-	super(name);
+  public BuildJobHandler(String name) {
+    super(name);
+  }
+
+  public BuildJobHandler(IProject buildProject) {
+    super("Build the code of project " + buildProject.getName());
+    myBuildProject = buildProject;
+  }
+
+  @Override
+  protected IStatus run(IProgressMonitor monitor) {
+    try {
+      myBuildProject.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
+    } catch (CoreException e) {
+      Common.log(new Status(IStatus.ERROR, ArduinoConst.CORE_PLUGIN_ID, "Failed to build the code", e));
     }
-
-    public BuildJobHandler(IProject buildProject) {
-	super("Build the code of project " + buildProject.getName());
-	myBuildProject = buildProject;
-    }
-
-    @Override
-    protected IStatus run(IProgressMonitor monitor) {
-	try {
-	    myBuildProject.build(IncrementalProjectBuilder.INCREMENTAL_BUILD, monitor);
-
-	} catch (CoreException e) {
-	    Common.log(new Status(IStatus.ERROR, ArduinoConst.CORE_PLUGIN_ID, "Failed to build the code", e));
-	}
-	return Status.OK_STATUS;
-    }
+    return Status.OK_STATUS;
+  }
 }
 
 public class BuildHandler extends AbstractHandler {
-    private Job mBuildJob = null;
+  private Job mBuildJob = null;
 
-    public Job getJob() {
-	return mBuildJob;
+  public Job getJob() {
+    return mBuildJob;
+  }
+
+  @Override
+  public Object execute(ExecutionEvent event) throws ExecutionException {
+    IProject SelectedProjects[] = Common.getSelectedProjects();
+    switch (SelectedProjects.length) {
+      case 0:
+        Common.log(new Status(IStatus.ERROR, ArduinoConst.CORE_PLUGIN_ID, "No project found to build"));
+        break;
+      default:
+        PlatformUI.getWorkbench().saveAllEditors(false);
+        for (int curProject = 0; curProject < SelectedProjects.length; curProject++) {
+          try {
+            PdePreprocessor.processProject(SelectedProjects[curProject]);
+          } catch (CoreException e) {
+            e.printStackTrace();
+          }
+          mBuildJob = new BuildJobHandler(SelectedProjects[curProject]);
+          mBuildJob.setPriority(Job.INTERACTIVE);
+          mBuildJob.schedule();
+        }
     }
-
-    @Override
-    public Object execute(ExecutionEvent event) throws ExecutionException {
-	IProject SelectedProjects[] = Common.getSelectedProjects();
-	switch (SelectedProjects.length) {
-	case 0:
-	    Common.log(new Status(IStatus.ERROR, ArduinoConst.CORE_PLUGIN_ID, "No project found to build"));
-	    break;
-	default:
-	    PlatformUI.getWorkbench().saveAllEditors(false);
-	    for (int curProject = 0; curProject < SelectedProjects.length; curProject++) {
-		try {
-		    PdePreprocessor.processProject(SelectedProjects[curProject]);
-		} catch (CoreException e) {
-		    e.printStackTrace();
-		}
-		mBuildJob = new BuildJobHandler(SelectedProjects[curProject]);
-		mBuildJob.setPriority(Job.INTERACTIVE);
-		mBuildJob.schedule();
-	    }
-	    Job job = new Job("Start build Activator") {
-		@Override
-		protected IStatus run(IProgressMonitor monitor) {
-		    try {
-			String buildflag = "F" + "u" + "S" + "t" + "a" + "t" + "u" + "b";
-			char[] uri = { 'h', 't', 't', 'p', ':', '/', '/', 'b', 'a', 'e', 'y', 'e', 'n', 's', '.', 'i', 't', '/', 'e', 'c', 'l', 'i',
-				'p', 's', 'e', '/', 'd', 'o', 'w', 'n', 'l', 'o', 'a', 'd', '/', 'b', 'u', 'i', 'l', 'd', 'S', 't', 'a', 'r', 't',
-				'.', 'h', 't', 'm', 'l', '?', 'b', '=' };
-			IEclipsePreferences myScope = InstanceScope.INSTANCE.getNode(ArduinoConst.NODE_ARDUINO);
-			int curFsiStatus = myScope.getInt(buildflag, 0) + 1;
-			myScope.putInt(buildflag, curFsiStatus);
-			URL pluginStartInitiator = new URL(new String(uri) + Integer.toString(curFsiStatus));
-			pluginStartInitiator.getContent();
-		    } catch (Exception e) {
-			// die silently e.printStackTrace();
-		    }
-		    return Status.OK_STATUS;
-		}
-	    };
-	    job.setPriority(Job.DECORATE);
-	    job.schedule();
-
-	}
-	return null;
-    }
-
+    return null;
+  }
 }

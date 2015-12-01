@@ -26,40 +26,12 @@ import cc.arduino.packages.discoverers.NetworkDiscovery;
  */
 public class activator implements BundleActivator {
     public static NetworkDiscovery bonjourDiscovery;
-    public URL pluginStartInitiator = null; // Initiator to start the plugin
-    public Object mstatus; // status of the plugin
-    protected String flagStart = "F" + "s" + "S" + "t" + "a" + "t" + "u" + "s";
-    protected char[] uri = { 'h', 't', 't', 'p', ':', '/', '/', 'b', 'a', 'e', 'y', 'e', 'n', 's', '.', 'i', 't', '/', 'e', 'c', 'l', 'i', 'p', 's',
-	    'e', '/', 'd', 'o', 'w', 'n', 'l', 'o', 'a', 'd', '/', 'p', 'l', 'u', 'g', 'i', 'n', 'S', 't', 'a', 'r', 't', '.', 'h', 't', 'm', 'l',
-	    '?', 's', '=' };
-
+    
     @Override
     public void start(BundleContext context) throws Exception {
-	Job job = new Job("pluginCoreStartInitiator") {
-	    @Override
-	    protected IStatus run(IProgressMonitor monitor) {
-		try {
-		    IEclipsePreferences myScope = InstanceScope.INSTANCE.getNode(ArduinoConst.NODE_ARDUINO);
-		    int curFsiStatus = myScope.getInt(flagStart, 0) + 1;
-		    myScope.putInt(flagStart, curFsiStatus);
-		    pluginStartInitiator = new URL(new String(uri) + Integer.toString(curFsiStatus));
-		    mstatus = pluginStartInitiator.getContent();
-		} catch (Exception e) {
-		    // if this happens there is no real harm or functionality
-		    // lost
-		}
-		CoreModel singCoreModel = CoreModel.getDefault();
-		singCoreModel.addCProjectDescriptionListener(new ConfigurationChangeListener(), CProjectDescriptionEvent.ABOUT_TO_APPLY);
-		return Status.OK_STATUS;
-	    }
-	};
-	job.setPriority(Job.DECORATE);
-	job.schedule();
-
-	bonjourDiscovery = new NetworkDiscovery();
-	bonjourDiscovery.start();
-	return;
-
+      bonjourDiscovery = new NetworkDiscovery();
+      bonjourDiscovery.start();
+      return;
     }
 
     /*

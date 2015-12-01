@@ -987,6 +987,7 @@ public class ArduinoHelpers extends Common {
 	    Common.setBuildEnvironmentVariable(contribEnv, confDesc, "A.PATH", makeEnvironmentVar("A.TOOLS." + uploadTool + ".PATH"));
 	    Common.setBuildEnvironmentVariable(contribEnv, confDesc, "A.CMD.PATH", makeEnvironmentVar("A.TOOLS." + uploadTool + ".CMD.PATH"));
 	    Common.setBuildEnvironmentVariable(contribEnv, confDesc, "A.CONFIG.PATH", makeEnvironmentVar("A.TOOLS." + uploadTool + ".CONFIG.PATH"));
+	    Common.setBuildEnvironmentVariable(contribEnv, confDesc, "A.NETWORK_CMD", makeEnvironmentVar("A.TOOLS." + uploadTool + ".NETWORK_CMD"));
 	} catch (Exception e) {
 	    // ignore this exception as there is no upload tool defined.
 	}

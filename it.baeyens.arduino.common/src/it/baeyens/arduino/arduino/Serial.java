@@ -67,17 +67,17 @@ public class Serial implements SerialPortEventListener {
      * who knows.
      */
     public static Vector<String> list() {
-	try {
-	    String[] portNames = SerialPortList.getPortNames();
-	    return new Vector<String>(Arrays.asList(portNames));
-	} catch (Error e) {
-	    Common.log(new Status(IStatus.ERROR, ArduinoConst.CORE_PLUGIN_ID,
-		    "There is a config problem on your system.\nFor more detail see https://github.com/jantje/arduino-eclipse-plugin/issues/252", e));
-	    Vector<String> ret = new Vector<String>();
-	    ret.add("config error:");
-	    ret.add("see https://github.com/jantje/arduino-eclipse-plugin/issues/252");
-	    return ret;
-	}
+      try {
+        String[] portNames = SerialPortList.getPortNames();
+        return new Vector<String>(Arrays.asList(portNames));
+      } catch (Error e) {
+        Common.log(new Status(IStatus.ERROR, ArduinoConst.CORE_PLUGIN_ID,
+          "There is a config problem on your system.\nFor more detail see https://github.com/jantje/arduino-eclipse-plugin/issues/252", e));
+        Vector<String> ret = new Vector<String>();
+        ret.add("config error:");
+        ret.add("see https://github.com/jantje/arduino-eclipse-plugin/issues/252");
+        return ret;
+      }
     }
 
     SerialPort port = null;
@@ -102,27 +102,27 @@ public class Serial implements SerialPortEventListener {
     private List<MessageConsumer> fConsumers;
 
     public Serial(String iname, int irate) {
-	this(iname, irate, 'N', 8, 1.0f);
+      this(iname, irate, 'N', 8, 1.0f);
     }
 
     public Serial(String iname, int irate, char iparity, int idatabits, float istopbits) {
-	PortName = iname;
-	this.rate = irate;
+      PortName = iname;
+      this.rate = irate;
 
-	parity = SerialPort.PARITY_NONE;
-	if (iparity == 'E')
-	    parity = SerialPort.PARITY_EVEN;
-	if (iparity == 'O')
-	    parity = SerialPort.PARITY_ODD;
+      parity = SerialPort.PARITY_NONE;
+      if (iparity == 'E')
+        parity = SerialPort.PARITY_EVEN;
+      if (iparity == 'O')
+        parity = SerialPort.PARITY_ODD;
 
-	this.databits = idatabits;
+      this.databits = idatabits;
 
-	stopbits = SerialPort.STOPBITS_1;
-	if (istopbits == 1.5f)
-	    stopbits = SerialPort.STOPBITS_1_5;
-	if (istopbits == 2)
-	    stopbits = SerialPort.STOPBITS_2;
-	connect();
+      stopbits = SerialPort.STOPBITS_1;
+      if (istopbits == 1.5f)
+        stopbits = SerialPort.STOPBITS_1_5;
+      if (istopbits == 2)
+        stopbits = SerialPort.STOPBITS_2;
+      connect();
 
     }
 

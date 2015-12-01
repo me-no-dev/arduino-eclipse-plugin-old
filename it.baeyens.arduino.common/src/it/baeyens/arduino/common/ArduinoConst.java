@@ -110,6 +110,9 @@ public class ArduinoConst {
     public static final String ENV_KEY_SERIAL_PORT = ENV_KEY_ARDUINO_START + "SERIAL.PORT";//$NON-NLS-1$
     public static final String ENV_KEY_SERIAL_PORT_FILE = ENV_KEY_ARDUINO_START + "SERIAL.PORT.FILE";//$NON-NLS-1$
 
+    public static final String ENV_KEY_NETWORK_PORT = ENV_KEY_ARDUINO_START + "NETWORK.PORT";//$NON-NLS-1$
+    public static final String ENV_KEY_NETWORK_PASSWORD = ENV_KEY_ARDUINO_START + "NETWORK.PASSWORD";//$NON-NLS-1$
+
     public static final String ArduinoIdeSuffix_WIN[] = { "" };//$NON-NLS-1$
     public static final String ArduinoIdeSuffix_LINUX[] = { "" };//$NON-NLS-1$
     public static final String ArduinoIdeSuffix_MAC[] = { "Contents/Resources/Java", "Contents/Java" };//$NON-NLS-1$
