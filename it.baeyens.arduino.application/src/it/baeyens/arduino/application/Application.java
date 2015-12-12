@@ -18,15 +18,15 @@ public class Application implements IApplication {
      */
     @Override
     public Object start(IApplicationContext context) throws Exception {
-	Display display = PlatformUI.createDisplay();
-	try {
-	    int returnCode = PlatformUI.createAndRunWorkbench(display, new ApplicationWorkbenchAdvisor());
-	    if (returnCode == PlatformUI.RETURN_RESTART)
-		return IApplication.EXIT_RESTART;
-	    return IApplication.EXIT_OK;
-	} finally {
-	    display.dispose();
-	}
+		Display display = PlatformUI.createDisplay();
+		try {
+		    int returnCode = PlatformUI.createAndRunWorkbench(display, new ApplicationWorkbenchAdvisor());
+		    if (returnCode == PlatformUI.RETURN_RESTART)
+				return IApplication.EXIT_RESTART;
+		    return IApplication.EXIT_OK;
+		} finally {
+		    display.dispose();
+		}
 
     }
 
@@ -37,16 +37,16 @@ public class Application implements IApplication {
      */
     @Override
     public void stop() {
-	if (!PlatformUI.isWorkbenchRunning())
-	    return;
-	final IWorkbench workbench = PlatformUI.getWorkbench();
-	final Display display = workbench.getDisplay();
-	display.syncExec(new Runnable() {
-	    @Override
-	    public void run() {
-		if (!display.isDisposed())
-		    workbench.close();
-	    }
-	});
+		if (!PlatformUI.isWorkbenchRunning())
+		    return;
+		final IWorkbench workbench = PlatformUI.getWorkbench();
+		final Display display = workbench.getDisplay();
+		display.syncExec(new Runnable() {
+		    @Override
+		    public void run() {
+			if (!display.isDisposed())
+			    workbench.close();
+		    }
+		});
     }
 }
