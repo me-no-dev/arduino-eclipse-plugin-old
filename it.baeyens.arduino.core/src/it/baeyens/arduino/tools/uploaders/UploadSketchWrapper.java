@@ -80,7 +80,7 @@ public class UploadSketchWrapper {
     myHighLevelConsoleStream.println("MComPort: "+MComPort);
     
     
-    if (host != null || !activator.bonjourDiscovery.isNetworkBoard(host)) {
+    if (host != null && activator.bonjourDiscovery.isNetworkBoard(host)) {
       if(activator.bonjourDiscovery.hasSSH(host)){
         myHighLevelConsoleStream.println("using ssh loader");
         PasswordManager pwdManager = new PasswordManager();
