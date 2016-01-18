@@ -28,8 +28,7 @@ angular.module('arduinoEclipse', ['ui.bootstrap','hc.marked'])
     "osx_nightly": {url: 'nightly-osx.html'},
     "win_nightly": {url: 'nightly-win.html'},
     "archived_1_x": {url: 'archived-1.x.html'},
-    "archived_2_2": {url: 'archived-2.2.html'},
-    "archived_2_3": {url: 'archived-2.3.shtml'}
+    "archived_2_2": {url: 'archived-2.2.html'}
 	}
 	$scope.init = function() {
 		for (var item in $scope.navlinks) {

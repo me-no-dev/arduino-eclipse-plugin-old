@@ -1,9 +1,14 @@
 package it.baeyens.arduino.ui;
 
+import it.baeyens.arduino.common.ArduinoConst;
+import it.baeyens.arduino.common.ArduinoInstancePreferences;
+import it.baeyens.arduino.common.Common;
+import it.baeyens.arduino.ide.connector.ArduinoGetPreferences;
+import it.baeyens.arduino.tools.ArduinoBoards;
+import it.baeyens.arduino.tools.ArduinoHelpers;
+
 import java.io.File;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.envvar.EnvironmentVariable;
@@ -33,12 +38,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
-import it.baeyens.arduino.common.ArduinoConst;
-import it.baeyens.arduino.common.ArduinoInstancePreferences;
-import it.baeyens.arduino.common.Common;
-import it.baeyens.arduino.tools.ArduinoBoards;
-import it.baeyens.arduino.tools.ArduinoHelpers;
-
 /**
  * The ArduinoSelectionPage class is used in the new wizard and the project properties. This class controls the gui and the data underneath the gui.
  * This class allows to select the arduino board and the port name
@@ -47,7 +46,7 @@ import it.baeyens.arduino.tools.ArduinoHelpers;
  * @see ArduinoProperties ArduinoSettingsPage
  * 
  */
-public class ArduinoBoardSelectionPage extends AbstractCPropertyTab {
+public class ArduinoSelectionPage extends AbstractCPropertyTab {
     // global stuff to allow to communicate outside this class
     public Text mFeedbackControl;
 
@@ -55,6 +54,7 @@ public class ArduinoBoardSelectionPage extends AbstractCPropertyTab {
     protected Combo mControlBoardsTxtFile;
     protected Combo mcontrolBoardName;
     protected LabelCombo mControlUploadPort;
+    protected LabelCombo mControlUploadProtocol;
     protected LabelCombo[] mBoardOptionCombos = null;
     private final int ncol = 2;
     protected Listener mBoardSelectionChangedListener = null;
@@ -71,7 +71,7 @@ public class ArduinoBoardSelectionPage extends AbstractCPropertyTab {
      * @return the configuration to save info into
      */
     public ICConfigurationDescription getConfdesc() {
-	if (this.page != null) {
+	if (page != null) {
 	    return getResDesc().getConfiguration();
 	}
 	return null;
@@ -89,7 +89,7 @@ public class ArduinoBoardSelectionPage extends AbstractCPropertyTab {
 	public void handleEvent(Event e) {
 	    ICConfigurationDescription confdesc = getConfdesc();
 	    if (confdesc != null) {
-		this.myCombo.StoreValue(confdesc);
+		myCombo.StoreValue(confdesc);
 	    }
 	    isPageComplete();
 	}
@@ -98,7 +98,7 @@ public class ArduinoBoardSelectionPage extends AbstractCPropertyTab {
 
 	public void setInfo(LabelCombo Combo) {
 
-	    this.myCombo = Combo;
+	    myCombo = Combo;
 	}
     }
 
@@ -109,8 +109,8 @@ public class ArduinoBoardSelectionPage extends AbstractCPropertyTab {
 	    IContributedEnvironment contribEnv = envManager.getContributedEnvironment();
 	    ICConfigurationDescription confdesc = getConfdesc();
 
-	    int selectedBoardFile = ArduinoBoardSelectionPage.this.mControlBoardsTxtFile.getSelectionIndex();
-	    String boardFile = ArduinoBoardSelectionPage.this.mControlBoardsTxtFile.getText().trim();
+	    int selectedBoardFile = mControlBoardsTxtFile.getSelectionIndex();
+	    String boardFile = mControlBoardsTxtFile.getText().trim();
 	    if (confdesc != null) {
 		IEnvironmentVariable var = new EnvironmentVariable(ArduinoConst.ENV_KEY_JANTJE_BOARDS_FILE, boardFile);
 		contribEnv.addVariable(var, confdesc);
@@ -122,13 +122,12 @@ public class ArduinoBoardSelectionPage extends AbstractCPropertyTab {
 	    /*
 	     * Change the list of available boards
 	     */
-	    String CurrentBoard = ArduinoBoardSelectionPage.this.mcontrolBoardName.getText();
-	    ArduinoBoardSelectionPage.this.mcontrolBoardName.removeAll();
-	    ArduinoBoardSelectionPage.this.mcontrolBoardName
-		    .setItems(ArduinoBoardSelectionPage.this.mAllBoardsFiles[selectedBoardFile].GetArduinoBoards());
-	    ArduinoBoardSelectionPage.this.mcontrolBoardName.setText(CurrentBoard);
+	    String CurrentBoard = mcontrolBoardName.getText();
+	    mcontrolBoardName.removeAll();
+	    mcontrolBoardName.setItems(mAllBoardsFiles[selectedBoardFile].GetArduinoBoards());
+	    mcontrolBoardName.setText(CurrentBoard);
 
-	    ArduinoBoardSelectionPage.this.BoardModifyListener.handleEvent(null);
+	    BoardModifyListener.handleEvent(null);
 	}
     };
 
@@ -136,12 +135,11 @@ public class ArduinoBoardSelectionPage extends AbstractCPropertyTab {
 	@Override
 	public void handleEvent(Event e) {
 
-	    int selectedBoardFile = ArduinoBoardSelectionPage.this.mControlBoardsTxtFile.getSelectionIndex();
-	    String boardName = ArduinoBoardSelectionPage.this.mcontrolBoardName.getText();
+	    int selectedBoardFile = mControlBoardsTxtFile.getSelectionIndex();
+	    String boardName = mcontrolBoardName.getText();
 
-	    for (LabelCombo curLabelCombo : ArduinoBoardSelectionPage.this.mBoardOptionCombos) {
-		curLabelCombo.setItems(
-			ArduinoBoardSelectionPage.this.mAllBoardsFiles[selectedBoardFile].getMenuItemNames(curLabelCombo.getMenuName(), boardName));
+	    for (LabelCombo curLabelCombo : mBoardOptionCombos) {
+		curLabelCombo.setItems(mAllBoardsFiles[selectedBoardFile].getMenuItemNames(curLabelCombo.getMenuName(), boardName));
 	    }
 
 	    IEnvironmentVariableManager envManager = CCorePlugin.getDefault().getBuildEnvironmentManager();
@@ -163,7 +161,7 @@ public class ArduinoBoardSelectionPage extends AbstractCPropertyTab {
     }
 
     public void setListener(Listener BoardSelectionChangedListener) {
-	this.mBoardSelectionChangedListener = BoardSelectionChangedListener;
+	mBoardSelectionChangedListener = BoardSelectionChangedListener;
     }
 
     private static void createLabel(Composite parent, int ncol, String t) {
@@ -185,100 +183,106 @@ public class ArduinoBoardSelectionPage extends AbstractCPropertyTab {
 	// create the desired layout for this wizard page
 	ICConfigurationDescription confdesc = getConfdesc();
 	GridLayout theGridLayout = new GridLayout();
-	theGridLayout.numColumns = this.ncol;
+	theGridLayout.numColumns = ncol;
 	composite.setLayout(theGridLayout);
 
 	GridData theGriddata;
-	this.mAllBoardsFileNames = ArduinoHelpers.getBoardsFiles();
-	if (this.mAllBoardsFileNames == null) {
-	    Common.log(new Status(IStatus.ERROR, ArduinoConst.CORE_PLUGIN_ID,
-		    "ArduinoHelpers.getBoardsFiles() returns null.\nThis should not happen.\nIt looks like the download of the boards failed.")); //$NON-NLS-1$
-	}
-	Arrays.sort(this.mAllBoardsFileNames);
-	this.mAllBoardsFiles = new ArduinoBoards[this.mAllBoardsFileNames.length];
-	for (int currentBoardFile = 0; currentBoardFile < this.mAllBoardsFileNames.length; currentBoardFile++) {
-	    this.mAllBoardsFiles[currentBoardFile] = new ArduinoBoards(new File(this.mAllBoardsFileNames[currentBoardFile]));
+	mAllBoardsFileNames = ArduinoHelpers.getBoardsFiles();
+	Arrays.sort(mAllBoardsFileNames);
+	mAllBoardsFiles = new ArduinoBoards[mAllBoardsFileNames.length];
+	for (int currentBoardFile = 0; currentBoardFile < mAllBoardsFileNames.length; currentBoardFile++) {
+	    mAllBoardsFiles[currentBoardFile] = new ArduinoBoards(mAllBoardsFileNames[currentBoardFile]);
 
 	}
 
-	switch (this.mAllBoardsFileNames.length) {
+	switch (mAllBoardsFileNames.length) {
 	case 0:
-	    Common.log(new Status(IStatus.ERROR, ArduinoConst.CORE_PLUGIN_ID, Messages.error_no_platform_files_found, null));
+	    Common.log(new Status(IStatus.ERROR, ArduinoConst.CORE_PLUGIN_ID, "No platform files found: check your Arduino preferences ", null));
 	    break;
 	case 1: {
 	    break;
 	}
 	default: {
 	    // create a combo to select the boards
-	    createLabel(composite, this.ncol, "The boards.txt file you want to use"); //$NON-NLS-1$
+	    createLabel(composite, ncol, "The boards.txt file you want to use"); //$NON-NLS-1$
 	    new Label(composite, SWT.NONE).setText("Boards.txt file:"); //$NON-NLS-1$
 	}
 
 	}
 
-	this.mControlBoardsTxtFile = new Combo(composite, SWT.BORDER | SWT.READ_ONLY);
+	mControlBoardsTxtFile = new Combo(composite, SWT.BORDER | SWT.READ_ONLY);
 	theGriddata = new GridData();
 	theGriddata.horizontalAlignment = SWT.FILL;
-	theGriddata.horizontalSpan = (this.ncol - 1);
-	this.mControlBoardsTxtFile.setLayoutData(theGriddata);
-	this.mControlBoardsTxtFile.setEnabled(false);
-	this.mControlBoardsTxtFile.setItems(this.mAllBoardsFileNames);
+	theGriddata.horizontalSpan = (ncol - 1);
+	mControlBoardsTxtFile.setLayoutData(theGriddata);
+	mControlBoardsTxtFile.setEnabled(false);
+	mControlBoardsTxtFile.setItems(mAllBoardsFileNames);
 
-	createLine(composite, this.ncol);
+	createLine(composite, ncol);
 	// -------
 
 	// ------
-	createLabel(composite, this.ncol, "Your Arduino board specifications"); //$NON-NLS-1$
+	createLabel(composite, ncol, "Your Arduino board specifications"); //$NON-NLS-1$
 	new Label(composite, SWT.NONE).setText("Board:"); //$NON-NLS-1$
-	this.mcontrolBoardName = new Combo(composite, SWT.BORDER | SWT.READ_ONLY);
+	mcontrolBoardName = new Combo(composite, SWT.BORDER | SWT.READ_ONLY);
 	theGriddata = new GridData();
 	theGriddata.horizontalAlignment = SWT.FILL;
-	theGriddata.horizontalSpan = (this.ncol - 1);
-	this.mcontrolBoardName.setLayoutData(theGriddata);
-	this.mcontrolBoardName.setEnabled(false);
+	theGriddata.horizontalSpan = (ncol - 1);
+	mcontrolBoardName.setLayoutData(theGriddata);
+	mcontrolBoardName.setEnabled(false);
 
 	// ----
-	this.mControlUploadPort = new LabelCombo(composite, Messages.ui_port, this.ncol - 1, ArduinoConst.ENV_KEY_JANTJE_COM_PORT, false);
 
-	this.mControlUploadPort.setItems(ArrayUtil.addAll(Activator.bonjourDiscovery.getList(), Common.listComPorts()));
+	mControlUploadProtocol = new LabelCombo(composite, "Uploading Protocol: ", ncol - 1, ArduinoConst.ENV_KEY_JANTJE_COM_PROG, false);
 
-	createLine(composite, this.ncol);
+	mControlUploadProtocol.add(ArduinoConst.DEFAULT);
+
+	// -----
+	mControlUploadPort = new LabelCombo(composite, "Port: ", ncol - 1, ArduinoConst.ENV_KEY_JANTJE_COM_PORT, false);
+
+	mControlUploadPort.setItems(ArrayUtil.addAll(activator.bonjourDiscovery.getList(), Common.listComPorts()));
+
+	createLine(composite, ncol);
 
 	String[] menuNames = new String[30];
-	for (int curBoardsFile = 0; curBoardsFile < this.mAllBoardsFiles.length; curBoardsFile++) {
-	    ArrayUtil.addAll(menuNames, this.mAllBoardsFiles[curBoardsFile].getMenuNames());
+	for (int curBoardsFile = 0; curBoardsFile < mAllBoardsFiles.length; curBoardsFile++) {
+	    ArrayUtil.addAll(menuNames, mAllBoardsFiles[curBoardsFile].getMenuNames());
 	}
 	menuNames = ArrayUtil.removeDuplicates(menuNames);
-	this.mBoardOptionCombos = new LabelCombo[menuNames.length];
+	mBoardOptionCombos = new LabelCombo[menuNames.length];
 	for (int currentOption = 0; currentOption < menuNames.length; currentOption++) {
 	    String menuName = menuNames[currentOption];
-	    this.mBoardOptionCombos[currentOption] = new LabelCombo(composite, menuName, this.ncol - 1, ArduinoConst.ENV_KEY_JANTJE_START + menuName,
-		    true);
+	    mBoardOptionCombos[currentOption] = new LabelCombo(composite, menuName, ncol - 1, ArduinoConst.ENV_KEY_JANTJE_START + menuName, true);
 	}
 
 	// Create the control to alert parents of changes
-	this.mFeedbackControl = new Text(composite, SWT.None);
-	this.mFeedbackControl.setVisible(false);
-	this.mFeedbackControl.setEnabled(false);
+	mFeedbackControl = new Text(composite, SWT.None);
+	mFeedbackControl.setVisible(false);
+	mFeedbackControl.setEnabled(false);
 	theGriddata = new GridData();
 	theGriddata.horizontalSpan = 0;
-	this.mFeedbackControl.setLayoutData(theGriddata);
+	mFeedbackControl.setLayoutData(theGriddata);
 	// End of special controls
 
 	setValues(confdesc);
 
 	// enable the listeners
 	childFieldListener controlUploadPortlistener = new childFieldListener();
-	controlUploadPortlistener.setInfo(this.mControlUploadPort);
-	this.mControlUploadPort.addListener(controlUploadPortlistener);
+	controlUploadPortlistener.setInfo(mControlUploadPort);
+	mControlUploadPort.addListener(controlUploadPortlistener);
+	childFieldListener controlUploadProtocollistener = new childFieldListener();
+	controlUploadProtocollistener.setInfo(mControlUploadProtocol);
+	mControlUploadProtocol.addListener(controlUploadProtocollistener);
+	mcontrolBoardName.addListener(SWT.Modify, BoardModifyListener);
+	mControlBoardsTxtFile.addListener(SWT.Modify, boardFileModifyListener);
 
-	this.mcontrolBoardName.addListener(SWT.Modify, this.BoardModifyListener);
-	this.mControlBoardsTxtFile.addListener(SWT.Modify, this.boardFileModifyListener);
-
-	for (LabelCombo curLabelCombo : this.mBoardOptionCombos) {
+	for (LabelCombo curLabelCombo : mBoardOptionCombos) {
 	    childFieldListener comboboxModifyListener = new childFieldListener();
 	    comboboxModifyListener.setInfo(curLabelCombo);
 	    curLabelCombo.addListener(comboboxModifyListener);
+	    // ComboboxModifyListener comboboxModifyListener = new ComboboxModifyListener();
+	    // comboboxModifyListener.setLabelCombo(boardOptionCombos[curBoardsFile][currentOption]);
+	    // boardOptionCombos[curBoardsFile][currentOption].addListener(comboboxModifyListener);
 	}
 
 	EnableControls();
@@ -289,21 +293,21 @@ public class ArduinoBoardSelectionPage extends AbstractCPropertyTab {
 
 	boolean MenuOpionsValidAndComplete = true;
 	boolean ret = true;
-	int selectedBoardFile = this.mControlBoardsTxtFile.getSelectionIndex();
+	int selectedBoardFile = mControlBoardsTxtFile.getSelectionIndex();
 	if (selectedBoardFile == -1)
 	    return false;
 
-	for (LabelCombo curLabelCombo : this.mBoardOptionCombos) {
+	for (LabelCombo curLabelCombo : mBoardOptionCombos) {
 	    MenuOpionsValidAndComplete = MenuOpionsValidAndComplete && curLabelCombo.isValid();
 	}
 
-	ret = !this.mcontrolBoardName.getText().trim().isEmpty() && MenuOpionsValidAndComplete;
-	if (!this.mFeedbackControl.getText().equals(ret ? "true" : "false")) { //$NON-NLS-1$ //$NON-NLS-2$
-	    this.mFeedbackControl.setText(ret ? "true" : "false"); //$NON-NLS-1$//$NON-NLS-2$
+	ret = !mcontrolBoardName.getText().trim().isEmpty() && mControlUploadProtocol.isValid() && MenuOpionsValidAndComplete;
+	if (!mFeedbackControl.getText().equals(ret ? "true" : "false")) {
+	    mFeedbackControl.setText(ret ? "true" : "false");
 	}
 	if (ret) {
-	    if (this.mBoardSelectionChangedListener != null) {
-		this.mBoardSelectionChangedListener.handleEvent(new Event());
+	    if (mBoardSelectionChangedListener != null) {
+		mBoardSelectionChangedListener.handleEvent(new Event());
 	    }
 	}
 
@@ -311,11 +315,12 @@ public class ArduinoBoardSelectionPage extends AbstractCPropertyTab {
     }
 
     protected void EnableControls() {
-	this.mcontrolBoardName.setEnabled(true);
-	this.mControlUploadPort.setEnabled(true);
-	this.mControlBoardsTxtFile.setEnabled((this.mAllBoardsFileNames.length > 1));
-	this.mControlBoardsTxtFile.setVisible(this.mAllBoardsFileNames.length > 1);
-	for (LabelCombo curLabelCombo : this.mBoardOptionCombos) {
+	mcontrolBoardName.setEnabled(true);
+	mControlUploadPort.setEnabled(true);
+	mControlUploadProtocol.setEnabled(true);
+	mControlBoardsTxtFile.setEnabled((mAllBoardsFileNames.length > 1));
+	mControlBoardsTxtFile.setVisible(mAllBoardsFileNames.length > 1);
+	for (LabelCombo curLabelCombo : mBoardOptionCombos) {
 	    curLabelCombo.setVisible(true);
 	}
     }
@@ -344,43 +349,41 @@ public class ArduinoBoardSelectionPage extends AbstractCPropertyTab {
 
     private void saveAllLastUseds() {
 	//
-	String boardFile = this.mControlBoardsTxtFile.getText().trim();
-	String boardName = this.mcontrolBoardName.getText().trim();
-	String uploadPort = this.mControlUploadPort.getValue();
+	String boardFile = mControlBoardsTxtFile.getText().trim();
+	String boardName = mcontrolBoardName.getText().trim();
+	String uploadPort = mControlUploadPort.getValue();
+	String uploadProg = mControlUploadProtocol.getValue();
 	ArduinoInstancePreferences.setLastUsedBoardsFile(boardFile);
 	ArduinoInstancePreferences.SetLastUsedArduinoBoard(boardName);
 	ArduinoInstancePreferences.SetLastUsedUploadPort(uploadPort);
-
-	Map<String, String> options = new HashMap<>();
-	for (LabelCombo curLabelCombo : ArduinoBoardSelectionPage.this.mBoardOptionCombos) {
-
-	    options.put(curLabelCombo.getMenuName(), curLabelCombo.getValue());
-	}
-	ArduinoInstancePreferences.setLastUsedMenuOption(options);
+	ArduinoInstancePreferences.SetLastUsedUploadProgrammer(uploadProg);
+	ArduinoInstancePreferences.setLastUsedMenuOption(""); // TOFIX implement
+							      // the options
     }
 
     public void saveAllSelections(ICConfigurationDescription confdesc) {
-	String boardFile = this.mControlBoardsTxtFile.getText().trim();
-	String boardName = this.mcontrolBoardName.getText().trim();
-	String uploadPort = this.mControlUploadPort.getValue();
+	String boardFile = mControlBoardsTxtFile.getText().trim();
+	String boardName = mcontrolBoardName.getText().trim();
+	String uploadPort = mControlUploadPort.getValue();
+	String uploadProg = mControlUploadProtocol.getValue();
 	IEnvironmentVariableManager envManager = CCorePlugin.getDefault().getBuildEnvironmentManager();
 	IContributedEnvironment contribEnv = envManager.getContributedEnvironment();
 
 	// Set the path variables
-	IPath platformPath = new Path(new File(this.mControlBoardsTxtFile.getText().trim()).getParent()).append(ArduinoConst.PLATFORM_FILE_NAME);
+	IPath platformPath = new Path(new File(mControlBoardsTxtFile.getText().trim()).getParent()).append(ArduinoConst.PLATFORM_FILE_NAME);
 	Common.setBuildEnvironmentVariable(contribEnv, confdesc, ArduinoConst.ENV_KEY_JANTJE_BOARDS_FILE, boardFile);
 	Common.setBuildEnvironmentVariable(contribEnv, confdesc, ArduinoConst.ENV_KEY_JANTJE_PLATFORM_FILE, platformPath.toString());
 	Common.setBuildEnvironmentVariable(contribEnv, confdesc, ArduinoConst.ENV_KEY_JANTJE_BOARD_NAME, boardName);
 	Common.setBuildEnvironmentVariable(contribEnv, confdesc, ArduinoConst.ENV_KEY_JANTJE_COM_PORT, uploadPort);
+	Common.setBuildEnvironmentVariable(contribEnv, confdesc, ArduinoConst.ENV_KEY_JANTJE_COM_PROG, uploadProg);
 
 	Common.setBuildEnvironmentVariable(contribEnv, confdesc, ArduinoConst.ENV_KEY_JANTJE_PACKAGE_ID, getPackage());
 	Common.setBuildEnvironmentVariable(contribEnv, confdesc, ArduinoConst.ENV_KEY_JANTJE_ARCITECTURE_ID, getArchitecture());
 	Common.setBuildEnvironmentVariable(contribEnv, confdesc, ArduinoConst.ENV_KEY_JANTJE_BOARD_ID, getBoardID());
 
-	for (LabelCombo curLabelCombo : this.mBoardOptionCombos) {
+	for (LabelCombo curLabelCombo : mBoardOptionCombos) {
 	    curLabelCombo.StoreValue(confdesc);
 	}
-	saveAllLastUseds();
 
     }
 
@@ -388,40 +391,38 @@ public class ArduinoBoardSelectionPage extends AbstractCPropertyTab {
 	String boardFile = ArduinoInstancePreferences.getLastUsedBoardsFile();
 	String boardName = ArduinoInstancePreferences.getLastUsedArduinoBoardName();
 	String uploadPort = ArduinoInstancePreferences.getLastUsedUploadPort();
+	String uploadProtocol = ArduinoInstancePreferences.getLastUsedUploadProgrammer();
 	if (confdesc != null) {
 	    boardFile = Common.getBuildEnvironmentVariable(confdesc, ArduinoConst.ENV_KEY_JANTJE_BOARDS_FILE, boardFile);
 	    boardName = Common.getBuildEnvironmentVariable(confdesc, ArduinoConst.ENV_KEY_JANTJE_BOARD_NAME, boardName);
 	    uploadPort = Common.getBuildEnvironmentVariable(confdesc, ArduinoConst.ENV_KEY_JANTJE_COM_PORT, uploadPort);
+	    uploadProtocol = Common.getBuildEnvironmentVariable(confdesc, ArduinoConst.ENV_KEY_JANTJE_COM_PROG, uploadProtocol);
 	}
-	Map<String, String> options = ArduinoInstancePreferences.getLastUsedMenuOption();
-	this.mControlBoardsTxtFile.setText(boardFile);
+	mControlBoardsTxtFile.setText(boardFile);
 	// if no boards file is selected select the first
-	if (this.mControlBoardsTxtFile.getText().isEmpty()) {
-	    this.mControlBoardsTxtFile.setText(this.mControlBoardsTxtFile.getItem(0));
+	if (mControlBoardsTxtFile.getText().isEmpty()) {
+	    mControlBoardsTxtFile.setText(mControlBoardsTxtFile.getItem(0));
 	}
-	int selectedBoardFile = this.mControlBoardsTxtFile.getSelectionIndex();
-	this.mcontrolBoardName.setItems(this.mAllBoardsFiles[selectedBoardFile].GetArduinoBoards());
-	this.mcontrolBoardName.setText(boardName);
+	int selectedBoardFile = mControlBoardsTxtFile.getSelectionIndex();
+	mcontrolBoardName.setItems(mAllBoardsFiles[selectedBoardFile].GetArduinoBoards());
+	mcontrolBoardName.setText(boardName);
 	// BoardModifyListener.handleEvent(null);
-	this.mControlUploadPort.setValue(uploadPort);
+	mControlUploadPort.setValue(uploadPort);
+	mControlUploadProtocol.setValue(uploadProtocol);
 
 	// set the options in the combo boxes before setting the value
-	for (LabelCombo curLabelCombo : this.mBoardOptionCombos) {
-	    curLabelCombo.setItems(this.mAllBoardsFiles[selectedBoardFile].getMenuItemNames(curLabelCombo.getMenuName(), boardName));
+	for (LabelCombo curLabelCombo : mBoardOptionCombos) {
+	    curLabelCombo.setItems(mAllBoardsFiles[selectedBoardFile].getMenuItemNames(curLabelCombo.getMenuName(), boardName));
 	    if (confdesc != null) {
 		curLabelCombo.getStoredValue(confdesc);
-	    } else {
-		String value = options.get(curLabelCombo.getMenuName());
-		if (value != null) {
-		    curLabelCombo.setValue(value);
-		}
+
 	    }
 	}
 
     }
 
     public IPath getPlatformFolder() {
-	return new Path(new File(this.mControlBoardsTxtFile.getText().trim()).getParent());
+	return new Path(new File(mControlBoardsTxtFile.getText().trim()).getParent());
     }
 
     @Override
@@ -443,12 +444,14 @@ public class ArduinoBoardSelectionPage extends AbstractCPropertyTab {
 	    saveAllSelections(confdesc);
 	    IProject project = confdesc.getProjectDescription().getProject();
 
+	    ArduinoGetPreferences.generateDumpFileForBoardIfNeeded(getPackage(), getArchitecture(), getBoardID(), null);
 	    ArduinoHelpers.setTheEnvironmentVariables(project, confdesc, false);
+	    ArduinoHelpers.setProjectPathVariables(confdesc);
 
 	    try {
 		ArduinoHelpers.addArduinoCodeToProject(project, confdesc);
 	    } catch (CoreException e1) {
-		Common.log(new Status(IStatus.ERROR, ArduinoConst.CORE_PLUGIN_ID, Messages.error_adding_arduino_code, e1));
+		Common.log(new Status(IStatus.ERROR, ArduinoConst.CORE_PLUGIN_ID, "Error adding the arduino code", e1));
 	    }
 	    ArduinoHelpers.removeInvalidIncludeFolders(confdesc);
 	    ArduinoHelpers.setDirtyFlag(project, confdesc);
@@ -459,44 +462,45 @@ public class ArduinoBoardSelectionPage extends AbstractCPropertyTab {
 	private AbstractPage myPage;
 
 	ArduinoSelectionPageListener(AbstractPage page) {
-	    this.myPage = page;
+	    myPage = page;
 	}
 
 	@Override
 	public void handleEvent(Event event) {
-	    this.myPage.setValid(isPageComplete());
+	    myPage.setValid(isPageComplete());
 	}
     }
 
     @Override
     public void handleTabEvent(int kind, Object data) {
 	if (kind == 222) {
-	    this.mFeedbackControl.addListener(SWT.Modify, new ArduinoSelectionPageListener((AbstractPage) data));
+	    mFeedbackControl.addListener(SWT.Modify, new ArduinoSelectionPageListener((AbstractPage) data));
 	}
 	super.handleTabEvent(kind, data);
     }
 
     public String getPackage() {
-	IPath platformFile = new Path(this.mControlBoardsTxtFile.getText().trim());
+	IPath platformFile = new Path(mControlBoardsTxtFile.getText().trim());
 	String architecture = platformFile.removeLastSegments(1).lastSegment();
-	if (architecture.contains(".")) { //$NON-NLS-1$
+	if (architecture.contains(".")) {
 	    return platformFile.removeLastSegments(4).lastSegment();
 	}
 	return platformFile.removeLastSegments(2).lastSegment();
     }
 
     public String getArchitecture() {
-	IPath platformFile = new Path(this.mControlBoardsTxtFile.getText().trim());
+	// TODO Auto-generated method stub
+	IPath platformFile = new Path(mControlBoardsTxtFile.getText().trim());
 	String architecture = platformFile.removeLastSegments(1).lastSegment();
-	if (architecture.contains(".")) { //$NON-NLS-1$
+	if (architecture.contains(".")) {
 	    architecture = platformFile.removeLastSegments(2).lastSegment();
 	}
 	return architecture;
     }
 
     public String getBoardID() {
-	int selectedBoardFile = this.mControlBoardsTxtFile.getSelectionIndex();
-	String boardName = this.mcontrolBoardName.getText().trim();
-	return this.mAllBoardsFiles[selectedBoardFile].getBoardIDFromName(boardName);
+	int selectedBoardFile = mControlBoardsTxtFile.getSelectionIndex();
+	String boardName = mcontrolBoardName.getText().trim();
+	return mAllBoardsFiles[selectedBoardFile].getBoardIDFromName(boardName);
     }
 }

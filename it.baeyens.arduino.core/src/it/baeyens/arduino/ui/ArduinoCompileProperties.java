@@ -1,5 +1,7 @@
 package it.baeyens.arduino.ui;
 
+import it.baeyens.arduino.common.ArduinoConst;
+
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.envvar.EnvironmentVariable;
 import org.eclipse.cdt.core.envvar.IContributedEnvironment;
@@ -21,8 +23,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
-import it.baeyens.arduino.common.ArduinoConst;
-
 public class ArduinoCompileProperties extends AbstractCPropertyTab {
     Button myWarningLevel;
     Button mySizeCommand;
@@ -42,21 +42,21 @@ public class ArduinoCompileProperties extends AbstractCPropertyTab {
 	super.createControls(parent, provider);
 	GridLayout theGridLayout = new GridLayout();
 	theGridLayout.numColumns = 2;
-	this.usercomp.setLayout(theGridLayout);
+	usercomp.setLayout(theGridLayout);
 
 	// checkbox show all warnings => Set WARNING_LEVEL=wall else
 	// WARNING_LEVEL=$ARDUINO_WARNING_LEVEL
-	this.myWarningLevel = new Button(this.usercomp, SWT.CHECK);
-	this.myWarningLevel.setText(Messages.ui_show_all_warnings);
-	this.myWarningLevel.setEnabled(true);
-	this.myWarningLevel.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false, 2, 1));
-	this.myWarningLevel.addListener(UPDATE, new Listener() {
+	myWarningLevel = new Button(usercomp, SWT.CHECK);
+	myWarningLevel.setText("show all warnings?");
+	myWarningLevel.setEnabled(true);
+	myWarningLevel.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false, 2, 1));
+	myWarningLevel.addListener(UPDATE, new Listener() {
 	    @Override
 	    public void handleEvent(Event e) {
 		if (getResDesc().getConfiguration() != null) {
 		    IEnvironmentVariableManager envManager = CCorePlugin.getDefault().getBuildEnvironmentManager();
 		    IContributedEnvironment contribEnv = envManager.getContributedEnvironment();
-		    if (ArduinoCompileProperties.this.myWarningLevel.getSelection() == true) {
+		    if (myWarningLevel.getSelection() == true) {
 			IEnvironmentVariable var = new EnvironmentVariable(ArduinoConst.ENV_KEY_JANTJE_WARNING_LEVEL,
 				ArduinoConst.ENV_KEY_WARNING_LEVEL_ON);
 			contribEnv.addVariable(var, getResDesc().getConfiguration());
@@ -70,44 +70,44 @@ public class ArduinoCompileProperties extends AbstractCPropertyTab {
 	});
 
 	// checkbox show alternative size
-	this.mySizeCommand = new Button(this.usercomp, SWT.CHECK);
-	this.mySizeCommand.setText(Messages.ui_Alternative_size);
-	this.mySizeCommand.setEnabled(true);
-	this.mySizeCommand.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false, 2, 1));
-	this.mySizeCommand.addListener(UPDATE, new Listener() {
+	mySizeCommand = new Button(usercomp, SWT.CHECK);
+	mySizeCommand.setText("Use alternative size command?");
+	mySizeCommand.setEnabled(true);
+	mySizeCommand.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false, 2, 1));
+	mySizeCommand.addListener(UPDATE, new Listener() {
 	    @Override
 	    public void handleEvent(Event e) {
 		if (getResDesc().getConfiguration() != null) {
 		    IEnvironmentVariableManager envManager = CCorePlugin.getDefault().getBuildEnvironmentManager();
 		    IContributedEnvironment contribEnv = envManager.getContributedEnvironment();
-		    if (ArduinoCompileProperties.this.mySizeCommand.getSelection() == true) {
-			IEnvironmentVariable var = new EnvironmentVariable(ArduinoConst.ENV_KEY_JANTJE_SIZE_SWITCH, "${" //$NON-NLS-1$
-				+ ArduinoConst.ENV_KEY_JANTJE_SIZE_COMMAND + "}"); //$NON-NLS-1$
+		    if (mySizeCommand.getSelection() == true) {
+			IEnvironmentVariable var = new EnvironmentVariable(ArduinoConst.ENV_KEY_JANTJE_SIZE_SWITCH, "${"
+				+ ArduinoConst.ENV_KEY_JANTJE_SIZE_COMMAND + "}");
 			contribEnv.addVariable(var, getResDesc().getConfiguration());
 		    } else {
-			IEnvironmentVariable var = new EnvironmentVariable(ArduinoConst.ENV_KEY_JANTJE_SIZE_SWITCH, "${" //$NON-NLS-1$
-				+ ArduinoConst.ENV_KEY_recipe_size_pattern + "}"); //$NON-NLS-1$
+			IEnvironmentVariable var = new EnvironmentVariable(ArduinoConst.ENV_KEY_JANTJE_SIZE_SWITCH, "${"
+				+ ArduinoConst.ENV_KEY_recipe_size_pattern + "}");
 			contribEnv.addVariable(var, getResDesc().getConfiguration());
 		    }
 		}
 	    }
 	});
 
-	createLine(this.usercomp, 2);
+	createLine(usercomp, 2);
 	// edit field add to C & C++ command line
-	Label label = new Label(this.usercomp, SWT.LEFT);
-	label.setText(Messages.ui_Apend_c_cpp);
+	Label label = new Label(usercomp, SWT.LEFT);
+	label.setText("append to C and C++ ");
 	label.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false, 1, 2));
-	this.myCCppCommand = new Text(this.usercomp, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
-	this.myCCppCommand.setText(ArduinoConst.EMPTY_STRING);
-	this.myCCppCommand.setToolTipText(Messages.ui_append_c_cpp_text);
-	this.myCCppCommand.setEnabled(true);
+	myCCppCommand = new Text(usercomp, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+	myCCppCommand.setText("");
+	myCCppCommand.setToolTipText("This command is added to the C and C++ compile command.");
+	myCCppCommand.setEnabled(true);
 
 	GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
 	gridData.horizontalSpan = 1;
 	gridData.verticalSpan = 2;
-	this.myCCppCommand.setLayoutData(gridData);
-	this.myCCppCommand.addModifyListener(new ModifyListener() {
+	myCCppCommand.setLayoutData(gridData);
+	myCCppCommand.addModifyListener(new ModifyListener() {
 
 	    @Override
 	    public void modifyText(ModifyEvent e) {
@@ -115,8 +115,8 @@ public class ArduinoCompileProperties extends AbstractCPropertyTab {
 		    IEnvironmentVariableManager envManager = CCorePlugin.getDefault().getBuildEnvironmentManager();
 		    IContributedEnvironment contribEnv = envManager.getContributedEnvironment();
 
-		    IEnvironmentVariable var = new EnvironmentVariable(ArduinoConst.ENV_KEY_JANTJE_ADDITIONAL_COMPILE_OPTIONS,
-			    ArduinoCompileProperties.this.myCCppCommand.getText());
+		    IEnvironmentVariable var = new EnvironmentVariable(ArduinoConst.ENV_KEY_JANTJE_ADDITIONAL_COMPILE_OPTIONS, myCCppCommand
+			    .getText());
 		    contribEnv.addVariable(var, getResDesc().getConfiguration());
 		}
 
@@ -124,15 +124,15 @@ public class ArduinoCompileProperties extends AbstractCPropertyTab {
 	});
 
 	// edit field add to C++ command line
-	label = new Label(this.usercomp, SWT.LEFT);
-	label.setText(Messages.ui_append_cpp);
+	label = new Label(usercomp, SWT.LEFT);
+	label.setText("append to C++ ");
 	label.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false, 1, 2));
-	this.myCppCommand = new Text(this.usercomp, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
-	this.myCppCommand.setText(ArduinoConst.EMPTY_STRING);
-	this.myCppCommand.setToolTipText(Messages.ui_append_cpp_text);
-	this.myCppCommand.setEnabled(true);
-	this.myCppCommand.setLayoutData(gridData);
-	this.myCppCommand.addModifyListener(new ModifyListener() {
+	myCppCommand = new Text(usercomp, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+	myCppCommand.setText("");
+	myCppCommand.setToolTipText("This command is added to the C++ compile command.");
+	myCppCommand.setEnabled(true);
+	myCppCommand.setLayoutData(gridData);
+	myCppCommand.addModifyListener(new ModifyListener() {
 
 	    @Override
 	    public void modifyText(ModifyEvent e) {
@@ -140,8 +140,8 @@ public class ArduinoCompileProperties extends AbstractCPropertyTab {
 		    IEnvironmentVariableManager envManager = CCorePlugin.getDefault().getBuildEnvironmentManager();
 		    IContributedEnvironment contribEnv = envManager.getContributedEnvironment();
 
-		    IEnvironmentVariable var = new EnvironmentVariable(ArduinoConst.ENV_KEY_JANTJE_ADDITIONAL_CPP_COMPILE_OPTIONS,
-			    ArduinoCompileProperties.this.myCppCommand.getText());
+		    IEnvironmentVariable var = new EnvironmentVariable(ArduinoConst.ENV_KEY_JANTJE_ADDITIONAL_CPP_COMPILE_OPTIONS, myCppCommand
+			    .getText());
 		    contribEnv.addVariable(var, getResDesc().getConfiguration());
 		}
 
@@ -149,15 +149,15 @@ public class ArduinoCompileProperties extends AbstractCPropertyTab {
 	});
 
 	// edit field add to C command line
-	label = new Label(this.usercomp, SWT.LEFT);
-	label.setText(Messages.ui_append_c);
+	label = new Label(usercomp, SWT.LEFT);
+	label.setText("append to C ");
 	label.setLayoutData(new GridData(SWT.BEGINNING, SWT.BEGINNING, false, false, 1, 2));
-	this.myCCommand = new Text(this.usercomp, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
-	this.myCCommand.setText(ArduinoConst.EMPTY_STRING);
-	this.myCCommand.setToolTipText(Messages.ui_append_c_text);
-	this.myCCommand.setEnabled(true);
-	this.myCCommand.setLayoutData(gridData);
-	this.myCCommand.addModifyListener(new ModifyListener() {
+	myCCommand = new Text(usercomp, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+	myCCommand.setText("");
+	myCCommand.setToolTipText("This command is added to the C compile command.");
+	myCCommand.setEnabled(true);
+	myCCommand.setLayoutData(gridData);
+	myCCommand.addModifyListener(new ModifyListener() {
 
 	    @Override
 	    public void modifyText(ModifyEvent e) {
@@ -165,8 +165,7 @@ public class ArduinoCompileProperties extends AbstractCPropertyTab {
 		    IEnvironmentVariableManager envManager = CCorePlugin.getDefault().getBuildEnvironmentManager();
 		    IContributedEnvironment contribEnv = envManager.getContributedEnvironment();
 
-		    IEnvironmentVariable var = new EnvironmentVariable(ArduinoConst.ENV_KEY_JANTJE_ADDITIONAL_C_COMPILE_OPTIONS,
-			    ArduinoCompileProperties.this.myCCommand.getText());
+		    IEnvironmentVariable var = new EnvironmentVariable(ArduinoConst.ENV_KEY_JANTJE_ADDITIONAL_C_COMPILE_OPTIONS, myCCommand.getText());
 		    contribEnv.addVariable(var, getResDesc().getConfiguration());
 		}
 
@@ -175,7 +174,7 @@ public class ArduinoCompileProperties extends AbstractCPropertyTab {
 
 	theGridLayout = new GridLayout();
 	theGridLayout.numColumns = 2;
-	this.usercomp.setLayout(theGridLayout);
+	usercomp.setLayout(theGridLayout);
 	setValues(getResDesc().getConfiguration());
 	setVisible(true);
     }
@@ -185,29 +184,29 @@ public class ArduinoCompileProperties extends AbstractCPropertyTab {
 	IContributedEnvironment contribEnv = envManager.getContributedEnvironment();
 	IEnvironmentVariable var = contribEnv.getVariable(ArduinoConst.ENV_KEY_JANTJE_WARNING_LEVEL, confDesc);
 	if (var == null)
-	    this.myWarningLevel.setSelection(false);
+	    myWarningLevel.setSelection(false);
 	else
-	    this.myWarningLevel.setSelection((var.getValue().equalsIgnoreCase(ArduinoConst.ENV_KEY_WARNING_LEVEL_ON)));
+	    myWarningLevel.setSelection((var.getValue().equalsIgnoreCase(ArduinoConst.ENV_KEY_WARNING_LEVEL_ON)));
 	var = contribEnv.getVariable(ArduinoConst.ENV_KEY_JANTJE_SIZE_SWITCH, confDesc);
 	if (var == null)
-	    this.mySizeCommand.setSelection(false);
+	    mySizeCommand.setSelection(false);
 	else
-	    this.mySizeCommand.setSelection((var.getValue().contains(ArduinoConst.ENV_KEY_JANTJE_SIZE_COMMAND)));
+	    mySizeCommand.setSelection((var.getValue().contains(ArduinoConst.ENV_KEY_JANTJE_SIZE_COMMAND)));
 	var = contribEnv.getVariable(ArduinoConst.ENV_KEY_JANTJE_ADDITIONAL_COMPILE_OPTIONS, confDesc);
 	if (var == null)
-	    this.myCCppCommand.setText(ArduinoConst.EMPTY_STRING);
+	    myCCppCommand.setText("");
 	else
-	    this.myCCppCommand.setText(var.getValue());
+	    myCCppCommand.setText(var.getValue());
 	var = contribEnv.getVariable(ArduinoConst.ENV_KEY_JANTJE_ADDITIONAL_C_COMPILE_OPTIONS, confDesc);
 	if (var == null)
-	    this.myCCommand.setText(ArduinoConst.EMPTY_STRING);
+	    myCCommand.setText("");
 	else
-	    this.myCCommand.setText(var.getValue());
+	    myCCommand.setText(var.getValue());
 	var = contribEnv.getVariable(ArduinoConst.ENV_KEY_JANTJE_ADDITIONAL_CPP_COMPILE_OPTIONS, confDesc);
 	if (var == null)
-	    this.myCppCommand.setText(ArduinoConst.EMPTY_STRING);
+	    myCppCommand.setText("");
 	else
-	    this.myCppCommand.setText(var.getValue());
+	    myCppCommand.setText(var.getValue());
     }
 
     @Override
@@ -233,10 +232,10 @@ public class ArduinoCompileProperties extends AbstractCPropertyTab {
 
     @Override
     protected void performDefaults() {
-	this.myWarningLevel.setSelection(true);
-	this.mySizeCommand.setSelection(false);
-	this.myCCppCommand.setText(ArduinoConst.EMPTY_STRING);
-	this.myCCommand.setText(ArduinoConst.EMPTY_STRING);
-	this.myCppCommand.setText(ArduinoConst.EMPTY_STRING);
+	myWarningLevel.setSelection(true);
+	mySizeCommand.setSelection(false);
+	myCCppCommand.setText("");
+	myCCommand.setText("");
+	myCppCommand.setText("");
     }
 }

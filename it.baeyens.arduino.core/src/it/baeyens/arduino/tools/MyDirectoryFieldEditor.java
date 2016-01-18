@@ -16,22 +16,22 @@ public class MyDirectoryFieldEditor {
     //
     public String getStringValue() {
 	// if (mySuffix.isEmpty()) {
-	return this.theEditor.getStringValue();
+	return theEditor.getStringValue();
 	// }
 	// return new Path(theEditor.getStringValue()).append(mySuffix).toString();
     }
 
     public MyDirectoryFieldEditor(String name, String labelText, Composite parent) {// , String suffix) {
 	if (Platform.getOS().equals(Platform.OS_MACOSX)) {
-	    this.theEditor = new FileFieldEditor(name, labelText, parent);
+	    theEditor = new FileFieldEditor(name, labelText, parent);
 	} else {
-	    this.theEditor = new DirectoryFieldEditor(name, labelText, parent);
+	    theEditor = new DirectoryFieldEditor(name, labelText, parent);
 	}
 	// mySuffix = suffix;
     }
 
     public FieldEditor getfield() {
-	return this.theEditor;
+	return theEditor;
     }
 
 }

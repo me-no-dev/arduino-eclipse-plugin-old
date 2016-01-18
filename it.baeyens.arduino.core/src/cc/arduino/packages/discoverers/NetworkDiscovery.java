@@ -46,8 +46,8 @@ import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.impl.DNSTaskStarter;
 
-import cc.arduino.packages.discoverers.network.NetworkChecker;
 import processing.app.zeroconf.jmdns.ArduinoDNSTaskStarter;
+import cc.arduino.packages.discoverers.network.NetworkChecker;
 
 public class NetworkDiscovery implements ServiceListener, cc.arduino.packages.discoverers.network.NetworkTopologyListener {
 
@@ -148,15 +148,10 @@ public class NetworkDiscovery implements ServiceListener, cc.arduino.packages.di
     String name = serviceEvent.getName();
     JmDNS dns = serviceEvent.getDNS();
 
-    try (JmDNS dns = serviceEvent.getDNS()) {
+    dns.requestServiceInfo(type, name);
+    ServiceInfo serviceInfo = dns.getServiceInfo(type, name);
+    if (serviceInfo != null) {
       dns.requestServiceInfo(type, name);
-      ServiceInfo serviceInfo = dns.getServiceInfo(type, name);
-      if (serviceInfo != null) {
-        dns.requestServiceInfo(type, name);
-      }
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
     }
   }
 
@@ -232,13 +227,13 @@ public class NetworkDiscovery implements ServiceListener, cc.arduino.packages.di
   
   @Override
   public void inetAddressAdded(InetAddress address) {
-    if (this.mappedJmDNSs.containsKey(address)) {
+    if (mappedJmDNSs.containsKey(address)) {
       return;
     }
     try {
       JmDNS jmDNS = JmDNS.create(address);
       jmDNS.addServiceListener("_arduino._tcp.local.", this);
-      this.mappedJmDNSs.put(address, jmDNS);
+      mappedJmDNSs.put(address, jmDNS);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -246,17 +241,13 @@ public class NetworkDiscovery implements ServiceListener, cc.arduino.packages.di
 
   @Override
   public void inetAddressRemoved(InetAddress address) {
-    try (JmDNS jmDNS = this.mappedJmDNSs.remove(address)) {
-      if (jmDNS != null) {
-        try {
-          jmDNS.close();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
+    JmDNS jmDNS = mappedJmDNSs.remove(address);
+    if (jmDNS != null) {
+      try {
+        jmDNS.close();
+      } catch (IOException e) {
+        e.printStackTrace();
       }
-    } catch (IOException e1) {
-      // TODO Auto-generated catch block
-      e1.printStackTrace();
     }
   }
 }

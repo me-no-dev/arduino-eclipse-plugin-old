@@ -24,24 +24,25 @@
 
 package it.baeyens.arduino.arduino;
 
+import it.baeyens.arduino.common.ArduinoConst;
+import it.baeyens.arduino.common.Common;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceRegistration;
-
-import it.baeyens.arduino.common.ArduinoConst;
-import it.baeyens.arduino.common.Common;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
 import jssc.SerialPortList;
+
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceRegistration;
 
 public class Serial implements SerialPortEventListener {
 
@@ -58,7 +59,7 @@ public class Serial implements SerialPortEventListener {
      * General error reporting, all correlated here just in case I think of something slightly more intelligent to do.
      */
     static public void errorMessage(String where, Throwable e) {
-	Common.log(new Status(IStatus.WARNING, ArduinoConst.CORE_PLUGIN_ID, "Error inside Serial. " + where, e)); //$NON-NLS-1$
+	Common.log(new Status(IStatus.WARNING, ArduinoConst.CORE_PLUGIN_ID, "Error inside Serial. " + where, e));
 
     }
 
@@ -79,10 +80,10 @@ public class Serial implements SerialPortEventListener {
 	    return new Vector<String>(Arrays.asList(portNames));
 	} catch (Error e) {
 	    Common.log(new Status(IStatus.ERROR, ArduinoConst.CORE_PLUGIN_ID,
-		    "There is a config problem on your system.\nFor more detail see https://github.com/jantje/arduino-eclipse-plugin/issues/252", e)); //$NON-NLS-1$
-	    Vector<String> ret = new Vector<>();
-	    ret.add("config error:"); //$NON-NLS-1$
-	    ret.add("see https://github.com/jantje/arduino-eclipse-plugin/issues/252"); //$NON-NLS-1$
+		    "There is a config problem on your system.\nFor more detail see https://github.com/jantje/arduino-eclipse-plugin/issues/252", e));
+	    Vector<String> ret = new Vector<String>();
+	    ret.add("config error:");
+	    ret.add("see https://github.com/jantje/arduino-eclipse-plugin/issues/252");
 	    return ret;
 	}
     }
@@ -113,52 +114,52 @@ public class Serial implements SerialPortEventListener {
     }
 
     public Serial(String iname, int irate, char iparity, int idatabits, float istopbits) {
-	this.PortName = iname;
-	this.rate = irate;
+      PortName = iname;
+      this.rate = irate;
 
-	this.parity = SerialPort.PARITY_NONE;
-	if (iparity == 'E')
-	    this.parity = SerialPort.PARITY_EVEN;
-	if (iparity == 'O')
-	    this.parity = SerialPort.PARITY_ODD;
+      parity = SerialPort.PARITY_NONE;
+      if (iparity == 'E')
+        parity = SerialPort.PARITY_EVEN;
+      if (iparity == 'O')
+        parity = SerialPort.PARITY_ODD;
 
-	this.databits = idatabits;
+      this.databits = idatabits;
 
-	this.stopbits = SerialPort.STOPBITS_1;
-	if (istopbits == 1.5f)
-	    this.stopbits = SerialPort.STOPBITS_1_5;
-	if (istopbits == 2)
-	    this.stopbits = SerialPort.STOPBITS_2;
-	connect();
+      stopbits = SerialPort.STOPBITS_1;
+      if (istopbits == 1.5f)
+        stopbits = SerialPort.STOPBITS_1_5;
+      if (istopbits == 2)
+        stopbits = SerialPort.STOPBITS_2;
+      connect();
 
     }
 
     public void addListener(MessageConsumer consumer) {
-	if (this.fConsumers == null) {
-	    this.fConsumers = new ArrayList<>();
+	if (fConsumers == null) {
+	    fConsumers = new ArrayList<MessageConsumer>();
 	}
-	this.fConsumers.add(consumer);
+	fConsumers.add(consumer);
     }
 
     public void removeListener(MessageConsumer consumer) {
-	if (this.fConsumers == null)
+	if (fConsumers == null)
 	    return;
-	this.fConsumers.remove(consumer);
+	fConsumers.remove(consumer);
     }
 
     /**
      * Returns the number of bytes that have been read from serial and are waiting to be dealt with by the user.
      */
     public int available() {
-	return (this.bufferLast - this.bufferIndex);
+	return (bufferLast - bufferIndex);
     }
 
     /**
      * Ignore all the bytes read so far and empty the buffer.
      */
     public void clear() {
-	this.bufferLast = 0;
-	this.bufferIndex = 0;
+	bufferLast = 0;
+	bufferIndex = 0;
     }
 
     public void connect() {
@@ -166,81 +167,79 @@ public class Serial implements SerialPortEventListener {
     }
 
     public void connect(int maxTries) {
-	if (this.port == null) {
+	if (port == null) {
 	    int count = 0;
 	    while (true) {
 		try {
-		    this.port = new SerialPort(this.PortName);
-		    this.port.openPort();
-		    this.port.setParams(this.rate, this.databits, this.stopbits, this.parity);
+		    port = new SerialPort(PortName);
+		    port.openPort();
+		    port.setParams(rate, databits, stopbits, parity);
 
 		    int eventMask = SerialPort.MASK_RXCHAR | SerialPort.MASK_BREAK;
-		    this.port.addEventListener(this, eventMask);
+		    port.addEventListener(this, eventMask);
 		    return;
 		} catch (SerialPortException e) {
 		    // handle exception
 		    if (++count == maxTries) {
 			if (SerialPortException.TYPE_PORT_BUSY.equals(e.getExceptionType())) {
-			    Common.log(new Status(IStatus.ERROR, ArduinoConst.CORE_PLUGIN_ID, "Serial port " + this.PortName //$NON-NLS-1$
-				    + " already in use. Try quiting any programs that may be using it", e)); //$NON-NLS-1$
+			    Common.log(new Status(IStatus.ERROR, ArduinoConst.CORE_PLUGIN_ID, "Serial port " + PortName
+				    + " already in use. Try quiting any programs that may be using it", e));
 			} else if (SerialPortException.TYPE_PORT_NOT_FOUND.equals(e.getExceptionType())) {
-			    Common.log(
-				    new Status(IStatus.ERROR, ArduinoConst.CORE_PLUGIN_ID,
-					    "Serial port " + this.PortName //$NON-NLS-1$
-						    + " not found. Did you select the right one from the project properties -> Arduino -> Arduino?", //$NON-NLS-1$
-					    e));
+			    Common.log(new Status(IStatus.ERROR, ArduinoConst.CORE_PLUGIN_ID, "Serial port " + PortName
+				    + " not found. Did you select the right one from the project properties -> Arduino -> Arduino?", e));
 			} else {
-			    Common.log(new Status(IStatus.ERROR, ArduinoConst.CORE_PLUGIN_ID, "Error opening serial port " + this.PortName, e)); //$NON-NLS-1$
+			    Common.log(new Status(IStatus.ERROR, ArduinoConst.CORE_PLUGIN_ID, "Error opening serial port " + PortName, e));
 			}
 			return;
-		    }
-		    try {
-			Thread.sleep(200);
-		    } catch (InterruptedException e1) {
-			Common.log(new Status(IStatus.WARNING, ArduinoConst.CORE_PLUGIN_ID, "Sleep failed", e1)); //$NON-NLS-1$
+		    } else {
+			try {
+			    Thread.sleep(200);
+			} catch (InterruptedException e1) {
+			    Common.log(new Status(IStatus.WARNING, ArduinoConst.CORE_PLUGIN_ID, "Sleep failed", e1));
+			}
 		    }
 		}
 		// If an exception was thrown, delete port variable
-		this.port = null;
+		port = null;
 	    }
 	}
     }
 
     public void disconnect() {
-	if (this.port != null) {
+	if (port != null) {
 	    try {
-		this.port.closePort();
+		port.closePort();
 	    } catch (SerialPortException e) {
 		e.printStackTrace();
 	    }
-	    this.port = null;
+	    port = null;
 	}
     }
 
     public void dispose() {
-	notifyConsumersOfEvent("Disconnect of port " + this.port.getPortName() + " executed"); //$NON-NLS-1$ //$NON-NLS-2$
+	notifyConsumersOfEvent("Disconnect of port " + port.getPortName() + " executed");
 	disconnect();
 
-	if (this.fServiceRegistration != null) {
-	    this.fServiceRegistration.unregister();
+	if (fServiceRegistration != null) {
+	    fServiceRegistration.unregister();
 	}
     }
 
     public boolean IsConnected() {
-	return (this.port != null && this.port.isOpened());
+	return (port != null && port.isOpened());
     }
 
     private void notifyConsumersOfData(byte[] message) {
-	if (this.fConsumers != null) {
-	    for (MessageConsumer consumer : this.fConsumers) {
+	if (fConsumers != null) {
+	    for (MessageConsumer consumer : fConsumers) {
 		consumer.message(message);
 	    }
 	}
     }
 
     private void notifyConsumersOfEvent(String message) {
-	if (this.fConsumers != null) {
-	    for (MessageConsumer consumer : this.fConsumers) {
+	if (fConsumers != null) {
+	    for (MessageConsumer consumer : fConsumers) {
 		consumer.event(message);
 	    }
 	}
@@ -251,14 +250,14 @@ public class Serial implements SerialPortEventListener {
      * first check available() to see if things are ready to avoid this)
      */
     public int read() {
-	if (this.bufferIndex == this.bufferLast)
+	if (bufferIndex == bufferLast)
 	    return -1;
 
-	synchronized (this.buffer) {
-	    int outgoing = this.buffer[this.bufferIndex++] & 0xff;
-	    if (this.bufferIndex == this.bufferLast) { // rewind
-		this.bufferIndex = 0;
-		this.bufferLast = 0;
+	synchronized (buffer) {
+	    int outgoing = buffer[bufferIndex++] & 0xff;
+	    if (bufferIndex == bufferLast) { // rewind
+		bufferIndex = 0;
+		bufferLast = 0;
 	    }
 	    return outgoing;
 	}
@@ -269,16 +268,16 @@ public class Serial implements SerialPortEventListener {
      * read, but it's easier to use than readBytes(byte b[]) (see below).
      */
     public byte[] readBytes() {
-	if (this.bufferIndex == this.bufferLast)
+	if (bufferIndex == bufferLast)
 	    return null;
 
-	synchronized (this.buffer) {
-	    int length = this.bufferLast - this.bufferIndex;
+	synchronized (buffer) {
+	    int length = bufferLast - bufferIndex;
 	    byte outgoing[] = new byte[length];
-	    System.arraycopy(this.buffer, this.bufferIndex, outgoing, 0, length);
+	    System.arraycopy(buffer, bufferIndex, outgoing, 0, length);
 
-	    this.bufferIndex = 0; // rewind
-	    this.bufferLast = 0;
+	    bufferIndex = 0; // rewind
+	    bufferLast = 0;
 	    return outgoing;
 	}
     }
@@ -290,19 +289,19 @@ public class Serial implements SerialPortEventListener {
      * Returns an int for how many bytes were read. If more bytes are available than can fit into the byte array, only those that will fit are read.
      */
     public int readBytes(byte outgoing[]) {
-	if (this.bufferIndex == this.bufferLast)
+	if (bufferIndex == bufferLast)
 	    return 0;
 
-	synchronized (this.buffer) {
-	    int length = this.bufferLast - this.bufferIndex;
+	synchronized (buffer) {
+	    int length = bufferLast - bufferIndex;
 	    if (length > outgoing.length)
 		length = outgoing.length;
-	    System.arraycopy(this.buffer, this.bufferIndex, outgoing, 0, length);
+	    System.arraycopy(buffer, bufferIndex, outgoing, 0, length);
 
-	    this.bufferIndex += length;
-	    if (this.bufferIndex == this.bufferLast) {
-		this.bufferIndex = 0; // rewind
-		this.bufferLast = 0;
+	    bufferIndex += length;
+	    if (bufferIndex == bufferLast) {
+		bufferIndex = 0; // rewind
+		bufferLast = 0;
 	    }
 	    return length;
 	}
@@ -313,14 +312,14 @@ public class Serial implements SerialPortEventListener {
      * 'null' is returned.
      */
     public byte[] readBytesUntil(int interesting) {
-	if (this.bufferIndex == this.bufferLast)
+	if (bufferIndex == bufferLast)
 	    return null;
 	byte what = (byte) interesting;
 
-	synchronized (this.buffer) {
+	synchronized (buffer) {
 	    int found = -1;
-	    for (int k = this.bufferIndex; k < this.bufferLast; k++) {
-		if (this.buffer[k] == what) {
+	    for (int k = bufferIndex; k < bufferLast; k++) {
+		if (buffer[k] == what) {
 		    found = k;
 		    break;
 		}
@@ -328,12 +327,12 @@ public class Serial implements SerialPortEventListener {
 	    if (found == -1)
 		return null;
 
-	    int length = found - this.bufferIndex + 1;
+	    int length = found - bufferIndex + 1;
 	    byte outgoing[] = new byte[length];
-	    System.arraycopy(this.buffer, this.bufferIndex, outgoing, 0, length);
+	    System.arraycopy(buffer, bufferIndex, outgoing, 0, length);
 
-	    this.bufferIndex = 0; // rewind
-	    this.bufferLast = 0;
+	    bufferIndex = 0; // rewind
+	    bufferLast = 0;
 	    return outgoing;
 	}
     }
@@ -346,14 +345,14 @@ public class Serial implements SerialPortEventListener {
      * returned. If 'interesting' byte is not in the buffer, then 0 is returned.
      */
     public int readBytesUntil(int interesting, byte outgoing[]) {
-	if (this.bufferIndex == this.bufferLast)
+	if (bufferIndex == bufferLast)
 	    return 0;
 	byte what = (byte) interesting;
 
-	synchronized (this.buffer) {
+	synchronized (buffer) {
 	    int found = -1;
-	    for (int k = this.bufferIndex; k < this.bufferLast; k++) {
-		if (this.buffer[k] == what) {
+	    for (int k = bufferIndex; k < bufferLast; k++) {
+		if (buffer[k] == what) {
 		    found = k;
 		    break;
 		}
@@ -361,19 +360,19 @@ public class Serial implements SerialPortEventListener {
 	    if (found == -1)
 		return 0;
 
-	    int length = found - this.bufferIndex + 1;
+	    int length = found - bufferIndex + 1;
 	    if (length > outgoing.length) {
-		Common.log(new Status(IStatus.WARNING, ArduinoConst.CORE_PLUGIN_ID, "readBytesUntil() byte buffer is too small for the " + length //$NON-NLS-1$
-			+ " bytes up to and including char " + interesting, null)); //$NON-NLS-1$
+		Common.log(new Status(IStatus.WARNING, ArduinoConst.CORE_PLUGIN_ID, "readBytesUntil() byte buffer is too small for the " + length
+			+ " bytes up to and including char " + interesting, null));
 		return -1;
 	    }
 	    // byte outgoing[] = new byte[length];
-	    System.arraycopy(this.buffer, this.bufferIndex, outgoing, 0, length);
+	    System.arraycopy(buffer, bufferIndex, outgoing, 0, length);
 
-	    this.bufferIndex += length;
-	    if (this.bufferIndex == this.bufferLast) {
-		this.bufferIndex = 0; // rewind
-		this.bufferLast = 0;
+	    bufferIndex += length;
+	    if (bufferIndex == bufferLast) {
+		bufferIndex = 0; // rewind
+		bufferLast = 0;
 	    }
 	    return length;
 	}
@@ -383,7 +382,7 @@ public class Serial implements SerialPortEventListener {
      * Returns the next byte in the buffer as a char. Returns -1, or 0xffff, if nothing is there.
      */
     public char readChar() {
-	if (this.bufferIndex == this.bufferLast)
+	if (bufferIndex == bufferLast)
 	    return (char) (-1);
 	return (char) read();
     }
@@ -395,7 +394,7 @@ public class Serial implements SerialPortEventListener {
      * Unicode data), and send it as a byte array.
      */
     public String readString() {
-	if (this.bufferIndex == this.bufferLast)
+	if (bufferIndex == bufferLast)
 	    return null;
 	return new String(readBytes());
     }
@@ -414,7 +413,7 @@ public class Serial implements SerialPortEventListener {
     }
 
     public void registerService() {
-	this.fServiceRegistration = FrameworkUtil.getBundle(getClass()).getBundleContext().registerService(Serial.class, this, null);
+	fServiceRegistration = FrameworkUtil.getBundle(getClass()).getBundleContext().registerService(Serial.class, this, null);
     }
 
     public void reset() {
@@ -438,39 +437,39 @@ public class Serial implements SerialPortEventListener {
 	    int bytesCount = serialEvent.getEventValue();
 
 	    if (IsConnected() && bytesCount > 0) {
-		synchronized (this.buffer) {
+		synchronized (buffer) {
 		    try {
-			byte[] readBytes = this.port.readBytes(bytesCount);
+			byte[] readBytes = port.readBytes(bytesCount);
 
 			// Check there is enough buffer to store new bytes
-			if (readBytes.length > this.buffer.length) {
-			    int newLength = this.buffer.length;
+			if (readBytes.length > buffer.length) {
+			    int newLength = buffer.length;
 			    while (readBytes.length > newLength) {
 				newLength *= 2;
 			    }
 
 			    byte temp[] = new byte[newLength];
-			    System.arraycopy(this.buffer, 0, temp, 0, this.buffer.length);
-			    this.buffer = temp;
+			    System.arraycopy(buffer, 0, temp, 0, buffer.length);
+			    buffer = temp;
 			}
 
 			// Append read bytes to buffer tail
-			System.arraycopy(readBytes, 0, this.buffer, this.bufferLast, readBytes.length);
-			if (this.monitor == true) {
+			System.arraycopy(readBytes, 0, buffer, bufferLast, readBytes.length);
+			if (monitor == true) {
 			    System.out.print(new String(readBytes));
 			}
-			this.bufferLast += readBytes.length;
+			bufferLast += readBytes.length;
 
 			notifyConsumersOfData(readBytes());
 		    } catch (SerialPortException e) {
-			errorMessage("serialEvent", e); //$NON-NLS-1$
+			errorMessage("serialEvent", e);
 		    }
 		}
 	    }
 
 	    break;
 	case SerialPortEvent.BREAK:
-	    errorMessage("Break detected", new Exception()); //$NON-NLS-1$
+	    errorMessage("Break detected", new Exception());
 	    break;
 	default:
 	    break;
@@ -480,7 +479,7 @@ public class Serial implements SerialPortEventListener {
     public void setDTR(boolean state) {
 	if (IsConnected()) {
 	    try {
-		this.port.setDTR(state);
+		port.setDTR(state);
 	    } catch (SerialPortException e) {
 		e.printStackTrace();
 	    }
@@ -490,7 +489,7 @@ public class Serial implements SerialPortEventListener {
     public void setRTS(boolean state) {
 	if (IsConnected()) {
 	    try {
-		this.port.setRTS(state);
+		port.setRTS(state);
 	    } catch (SerialPortException e) {
 		e.printStackTrace();
 	    }
@@ -503,15 +502,15 @@ public class Serial implements SerialPortEventListener {
     // needed to fill viewers in jfases
     @Override
     public String toString() {
-	return this.PortName;
+	return PortName;
     }
 
     public void write(byte bytes[]) {
-	if (this.port != null) {
+	if (port != null) {
 	    try {
-		this.port.writeBytes(bytes);
+		port.writeBytes(bytes);
 	    } catch (SerialPortException e) {
-		errorMessage("write", e); //$NON-NLS-1$
+		errorMessage("write", e);
 	    }
 	}
     }
@@ -520,11 +519,11 @@ public class Serial implements SerialPortEventListener {
      * This will handle both ints, bytes and chars transparently.
      */
     public void write(int what) { // will also cover char
-	if (this.port != null) {
+	if (port != null) {
 	    try {
-		this.port.writeByte((byte) (what & 0xFF));
+		port.writeByte((byte) (what & 0xFF));
 	    } catch (SerialPortException e) {
-		errorMessage("write", e); //$NON-NLS-1$
+		errorMessage("write", e);
 	    }
 	}
     }
@@ -542,8 +541,8 @@ public class Serial implements SerialPortEventListener {
     }
 
     public void write(String what, String LineEnd) {
-	notifyConsumersOfEvent(System.getProperty("line.separator") + ">>Send to " + this.PortName + ": \"" + what + "\"<<" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-		+ System.getProperty("line.separator")); //$NON-NLS-1$
+	notifyConsumersOfEvent(System.getProperty("line.separator") + ">>Send to " + PortName + ": \"" + what + "\"<<"
+		+ System.getProperty("line.separator"));
 	write(what.getBytes());
 	if (LineEnd.length() > 0) {
 	    write(LineEnd.getBytes());

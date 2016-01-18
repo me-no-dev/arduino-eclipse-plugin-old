@@ -10,7 +10,7 @@ import org.eclipse.swt.widgets.Composite;
  * 
  */
 public class ArduinoPropertyPage extends AbstractPage {
-    ArduinoBoardSelectionPage page = null;
+    ArduinoSelectionPage page = null;
 
     @Override
     protected boolean isSingle() {

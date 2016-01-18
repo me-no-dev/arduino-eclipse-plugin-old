@@ -5,22 +5,20 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
 
-import it.baeyens.arduino.common.ArduinoConst;
-
 public class SSHPrompt {
-    String host = ArduinoConst.EMPTY_STRING;
-    String user = ArduinoConst.EMPTY_STRING;
-    String passwd = ArduinoConst.EMPTY_STRING;
+    String host = "marvin1.local";
+    String user = "root";
+    String passwd = "Teensy2Graag";
 
     public void test() {
 
 	try {
 	    JSch jsch = new JSch();
 
-	    Session session = jsch.getSession(this.user, this.host, 22);
-	    session.setPassword(this.passwd);
+	    Session session = jsch.getSession(user, host, 22);
+	    session.setPassword(passwd);
 
-	    MyUserInfo ui = new MyUserInfo(this.user, this.passwd);
+	    MyUserInfo ui = new MyUserInfo(user, passwd);
 
 	    session.setUserInfo(ui);
 
@@ -31,7 +29,7 @@ public class SSHPrompt {
 	    // session.connect();
 	    session.connect(30000); // making a connection with timeout.
 
-	    Channel channel = session.openChannel("shell"); //$NON-NLS-1$
+	    Channel channel = session.openChannel("shell");
 
 	    // Enable agent-forwarding.
 	    // ((ChannelShell)channel).setAgentForwarding(true);
@@ -65,8 +63,8 @@ public class SSHPrompt {
 	String myPasswd;
 
 	public MyUserInfo(String user, String passwd) {
-	    this.myUser = user;
-	    this.myPasswd = passwd;
+	    myUser = user;
+	    myPasswd = passwd;
 	}
 
 	@Override
@@ -78,7 +76,7 @@ public class SSHPrompt {
 	@Override
 	public String getPassword() {
 	    // TODO Auto-generated method stub
-	    return this.myPasswd;
+	    return myPasswd;
 	}
 
 	@Override

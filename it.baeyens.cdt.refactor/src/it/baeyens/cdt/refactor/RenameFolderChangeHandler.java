@@ -25,13 +25,13 @@ public class RenameFolderChangeHandler extends Change {
     private String myNewName;
 
     public RenameFolderChangeHandler(String oldName, String newName) {
-	this.myOldName = oldName;
-	this.myNewName = new Path(oldName).removeLastSegments(1).append(newName).toString();
+	myOldName = oldName;
+	myNewName = new Path(oldName).removeLastSegments(1).append(newName).toString();
     }
 
     @Override
     public String getName() {
-	return "Arduino Folder rename handler"; //$NON-NLS-1$
+	return "Arduino Folder rename handler";
     }
 
     @Override
@@ -74,15 +74,16 @@ public class RenameFolderChangeHandler extends Change {
 				boolean languageChanged = false;
 				ICLanguageSettingEntry[] IncludeEntries = lang.getSettingEntries(ICSettingEntry.INCLUDE_PATH);
 				for (int curIncludeEntry = 0; curIncludeEntry < IncludeEntries.length; curIncludeEntry++) {
-				    if (IncludeEntries[curIncludeEntry].getName().startsWith(this.myOldName)) {
-					String newValue = IncludeEntries[curIncludeEntry].getName().replace(this.myOldName, this.myNewName);
+				    if (IncludeEntries[curIncludeEntry].getName().startsWith(myOldName)) {
+					String newValue = IncludeEntries[curIncludeEntry].getName().replace(myOldName, myNewName);
 					languageChanged = true;
 					projectDescriptionChanged = true;
 					IncludeEntries[curIncludeEntry] = new CIncludePathEntry(newValue, ICSettingEntry.VALUE_WORKSPACE_PATH);
-					Activator.getDefault().getLog()
-						.log(new Status(IStatus.INFO, "it.baeyens.cdt.refactor", //$NON-NLS-1$
-							"changed path from " + this.myOldName + " to " //$NON-NLS-1$ //$NON-NLS-2$
-								+ this.myNewName));
+					Activator
+						.getDefault()
+						.getLog()
+						.log(new Status(IStatus.INFO, "it.baeyens.cdt.refactor", "changed path from " + myOldName + " to "
+							+ myNewName));
 				    }
 				}
 				if (languageChanged) {

@@ -20,16 +20,16 @@ public class NewArduinoSketchWizardBoardPage extends WizardPage {
 
     final Shell shell = new Shell();
 
-    protected ArduinoBoardSelectionPage mPageLayout = new ArduinoBoardSelectionPage();
+    protected ArduinoSelectionPage mPageLayout = new ArduinoSelectionPage();
 
     public void setListener(Listener BoardSelectionChangedListener) {
-	this.mPageLayout.setListener(BoardSelectionChangedListener);
+	mPageLayout.setListener(BoardSelectionChangedListener);
     }
 
     private Listener completeListener = new Listener() {
 	@Override
 	public void handleEvent(Event e) {
-	    setPageComplete(NewArduinoSketchWizardBoardPage.this.mPageLayout.isPageComplete());
+	    setPageComplete(mPageLayout.isPageComplete());
 	}
     };
 
@@ -46,30 +46,30 @@ public class NewArduinoSketchWizardBoardPage extends WizardPage {
     @Override
     public void createControl(Composite parent) {
 	Composite composite = new Composite(parent, SWT.NULL);
-	this.mPageLayout.draw(composite);
+	mPageLayout.draw(composite);
 	setControl(composite);
-	this.mPageLayout.mFeedbackControl.addListener(SWT.Modify, this.completeListener);
-	setPageComplete(this.mPageLayout.isPageComplete());
+	mPageLayout.mFeedbackControl.addListener(SWT.Modify, completeListener);
+	setPageComplete(mPageLayout.isPageComplete());
     }
 
     public void saveAllSelections(ICConfigurationDescription confdesc) {
-	this.mPageLayout.saveAllSelections(confdesc);
+	mPageLayout.saveAllSelections(confdesc);
     }
 
     public IPath getPlatformFolder() {
-	return this.mPageLayout.getPlatformFolder();
+	return mPageLayout.getPlatformFolder();
     }
 
     public String getPackage() {
-	return this.mPageLayout.getPackage();
+	return mPageLayout.getPackage();
     }
 
     public String getArchitecture() {
-	return this.mPageLayout.getArchitecture();
+	return mPageLayout.getArchitecture();
     }
 
     public String getBoardID() {
-	return this.mPageLayout.getBoardID();
+	return mPageLayout.getBoardID();
     }
 
 }

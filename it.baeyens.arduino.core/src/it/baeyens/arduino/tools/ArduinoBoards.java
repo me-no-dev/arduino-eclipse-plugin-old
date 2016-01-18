@@ -1,5 +1,8 @@
 package it.baeyens.arduino.tools;
 
+import it.baeyens.arduino.common.ArduinoConst;
+import it.baeyens.arduino.common.Common;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,9 +20,6 @@ import java.util.Set;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-import it.baeyens.arduino.common.ArduinoConst;
-import it.baeyens.arduino.common.Common;
-
 /**
  * ArduinoBoards is that class that hides the Arduino Boards.txt file <br/>
  * The is based on the code of Trump at https://github.com/Trump211/ArduinoEclipsePlugin and later adapted as needed.
@@ -29,13 +29,13 @@ import it.baeyens.arduino.common.Common;
  */
 public class ArduinoBoards {
     private File mLastLoadedBoardsFile = null;
-    private static final String DOT = ArduinoConst.DOT;
-    private static final String MENU = "menu"; //$NON-NLS-1$
     Map<String, String> settings = null;
     // private String mLastLoadedBoard = "";
-    private Map<String, Map<String, String>> mArduinoSupportedBoards = new LinkedHashMap<>(); // all the data
+    private Map<String, Map<String, String>> mArduinoSupportedBoards = new LinkedHashMap<String, Map<String, String>>(); // all
+															 // the
+															 // data
 
-    public ArduinoBoards(File boardsFileName) {
+    public ArduinoBoards(String boardsFileName) {
 	LoadBoardsFile(boardsFileName);
     }
 
@@ -51,7 +51,7 @@ public class ArduinoBoards {
      * @return all entries that match the filter
      */
     public Map<String, String> getSection(String SectionKey) {
-	return this.mArduinoSupportedBoards.get(SectionKey);
+	return mArduinoSupportedBoards.get(SectionKey);
     }
 
     /**
@@ -60,11 +60,11 @@ public class ArduinoBoards {
      * @return a list of all the menu option name
      */
     public String[] getMenuNames() {
-	HashSet<String> ret = new HashSet<>();
-	for (Entry<String, Map<String, String>> entry : this.mArduinoSupportedBoards.entrySet()) {
-	    if (entry.getKey().equals(MENU)) {
+	HashSet<String> ret = new HashSet<String>();
+	for (Entry<String, Map<String, String>> entry : mArduinoSupportedBoards.entrySet()) {
+	    if (entry.getKey().equals("menu")) {
 		for (Entry<String, String> e2 : entry.getValue().entrySet()) {
-		    if (!e2.getKey().contains(ArduinoConst.DOT)) {
+		    if (!e2.getKey().contains(".")) {
 			if (!ret.contains(e2.getValue())) {
 			    ret.add(e2.getValue());
 			}
@@ -87,8 +87,8 @@ public class ArduinoBoards {
     public String[] getMenuItemNames(String menuLabel, String boardName) {
 	String menuID = null;
 	String boardID = getBoardIDFromName(boardName);
-	HashSet<String> ret = new HashSet<>();
-	Map<String, String> menuInfo = this.mArduinoSupportedBoards.get(MENU);
+	HashSet<String> ret = new HashSet<String>();
+	Map<String, String> menuInfo = mArduinoSupportedBoards.get("menu");
 	if (menuInfo == null) {
 	    return new String[0];
 	}
@@ -96,19 +96,19 @@ public class ArduinoBoards {
 	    if (e2.getValue().equals(menuLabel))
 		menuID = e2.getKey();
 	}
-	String SearchKey = menuID + DOT + boardID + DOT;
+	String SearchKey = menuID + "." + boardID + ".";
 	for (Entry<String, String> e2 : menuInfo.entrySet()) {
-	    int numsubkeys = e2.getKey().split("\\.").length; //$NON-NLS-1$
+	    int numsubkeys = e2.getKey().split("\\.").length;
 	    boolean startOk = e2.getKey().startsWith(SearchKey);
 	    if ((numsubkeys == 3) && (startOk))
 		ret.add(e2.getValue());
 	}
 	// from Arduino IDE 1.5.4 menu is subset of the board. The previous code will not return a result
-	Map<String, String> boardInfo = this.mArduinoSupportedBoards.get(boardID);
+	Map<String, String> boardInfo = mArduinoSupportedBoards.get(boardID);
 	if (boardInfo != null) {
-	    SearchKey = MENU + DOT + menuID + DOT;
+	    SearchKey = "menu." + menuID + ".";
 	    for (Entry<String, String> e2 : boardInfo.entrySet()) {
-		int numsubkeys = e2.getKey().split("\\.").length; //$NON-NLS-1$
+		int numsubkeys = e2.getKey().split("\\.").length;
 		boolean startOk = e2.getKey().startsWith(SearchKey);
 		if ((numsubkeys == 3) && (startOk))
 		    ret.add(e2.getValue());
@@ -125,16 +125,20 @@ public class ArduinoBoards {
      * 
      */
     public String[] GetArduinoBoards() {
-	if (this.mLastLoadedBoardsFile.equals(ArduinoConst.EMPTY_STRING)) {
+	if (mLastLoadedBoardsFile.equals("")) {
 	    String[] sBoards = new String[0];
 	    return sBoards;
 	}
-	Set<String> mBoards = new HashSet<>();
-	for (String s : this.mArduinoSupportedBoards.keySet()) {
+	Set<String> mBoards = new HashSet<String>();
+	for (String s : mArduinoSupportedBoards.keySet()) {
 	    if (s != null) {
-		String theboardName = this.mArduinoSupportedBoards.get(s).get(ArduinoConst.BoardNameKeyTAG);
+		String theboardName = mArduinoSupportedBoards.get(s).get(ArduinoConst.BoardNameKeyTAG);
 		if (theboardName != null) {
+		    // if
+		    // (mArduinoSupportedBoards.get(s).get(ArduinoConst.BoardBuildCoreFolder)
+		    // != null) {
 		    mBoards.add(theboardName);
+		    // }
 		}
 	    }
 	}
@@ -152,16 +156,16 @@ public class ArduinoBoards {
      * @return true when the action was successful. else false.
      * @author jan
      */
-    public boolean LoadBoardsFile(File boardsFile) {
+    public boolean LoadBoardsFile(String boardsFile) {
 
-	if ((this.mLastLoadedBoardsFile != null) && (this.mLastLoadedBoardsFile.equals(boardsFile)))
+	if ((mLastLoadedBoardsFile != null) && (mLastLoadedBoardsFile.equals(boardsFile)))
 	    return true; // do nothing when value didn't change
-	this.mLastLoadedBoardsFile = boardsFile;
+	mLastLoadedBoardsFile = new File(boardsFile);
 	return LoadBoardsFile();
     }
 
     public boolean exists() {
-	return this.mLastLoadedBoardsFile.exists();
+	return mLastLoadedBoardsFile.exists();
     }
 
     /**
@@ -173,25 +177,25 @@ public class ArduinoBoards {
      */
     private boolean LoadBoardsFile() {
 	// If the file doesn't exist ignore it.
-	if (!this.mLastLoadedBoardsFile.exists())
+	if (!mLastLoadedBoardsFile.exists())
 	    return false;
 
-	this.mArduinoSupportedBoards.clear();
+	mArduinoSupportedBoards.clear();
 
 	try {
-	    Map<String, String> boardPreferences = new LinkedHashMap<>();
-	    load(this.mLastLoadedBoardsFile, boardPreferences);
+	    Map<String, String> boardPreferences = new LinkedHashMap<String, String>();
+	    load(mLastLoadedBoardsFile, boardPreferences);
 	    for (Object k : boardPreferences.keySet()) {
 		String key = (String) k;
 		String board = key.substring(0, key.indexOf('.'));
-		if (!this.mArduinoSupportedBoards.containsKey(board))
-		    this.mArduinoSupportedBoards.put(board, new HashMap<String, String>());
-		(this.mArduinoSupportedBoards.get(board)).put(key.substring(key.indexOf('.') + 1), boardPreferences.get(key));
+		if (!mArduinoSupportedBoards.containsKey(board))
+		    mArduinoSupportedBoards.put(board, new HashMap<String, String>());
+		(mArduinoSupportedBoards.get(board)).put(key.substring(key.indexOf('.') + 1), boardPreferences.get(key));
 	    }
 
 	} catch (Exception e) {
-	    Common.log(new Status(IStatus.WARNING, ArduinoConst.CORE_PLUGIN_ID,
-		    Messages.ArduinoBoards_Failed_to_read_boards + this.mLastLoadedBoardsFile.getName(), e));
+	    Common.log(new Status(IStatus.WARNING, ArduinoConst.CORE_PLUGIN_ID, "Failed to read arduino boards file "
+		    + mLastLoadedBoardsFile.getName(), e));
 	}
 	return true;
     }
@@ -200,7 +204,7 @@ public class ArduinoBoards {
      * @author Trump
      */
     public String getBoardIDFromName(String boardName) {
-	for (Entry<String, Map<String, String>> entry : this.mArduinoSupportedBoards.entrySet()) {
+	for (Entry<String, Map<String, String>> entry : mArduinoSupportedBoards.entrySet()) {
 	    for (Entry<String, String> e2 : entry.getValue().entrySet()) {
 		if (e2.getValue().equals(boardName))
 		    return entry.getKey();
@@ -253,7 +257,7 @@ public class ArduinoBoards {
 	try {
 	    String lines[] = new String[100];
 	    int lineCount = 0;
-	    try (BufferedReader reader = new BufferedReader(new InputStreamReader(input, "UTF-8"));) { //$NON-NLS-1$
+	    try (BufferedReader reader = new BufferedReader(new InputStreamReader(input, "UTF-8"));) {
 
 		String line = null;
 		while ((line = reader.readLine()) != null) {
@@ -277,68 +281,68 @@ public class ArduinoBoards {
 	    return output;
 
 	} catch (IOException e) {
-	    IStatus status = new Status(IStatus.WARNING, ArduinoConst.CORE_PLUGIN_ID, "Failed to read stream ", e); //$NON-NLS-1$
+	    IStatus status = new Status(IStatus.WARNING, ArduinoConst.CORE_PLUGIN_ID, "Failed to read stream ", e);
 	    Common.log(status);
 	}
 	return null;
     }
 
     public String getBoardsTxtName() {
-	return this.mLastLoadedBoardsFile.getAbsolutePath();
+	return mLastLoadedBoardsFile.getAbsolutePath();
     }
 
     public String getMenuNameFromID(String menuID) {
-	Map<String, String> menuSectionMap = getSection(MENU);
+	Map<String, String> menuSectionMap = getSection("menu");
 	for (Entry<String, String> curOption : menuSectionMap.entrySet()) {
 	    if (curOption.getKey().equals(menuID)) {
 		return curOption.getValue();
 	    }
 	}
-	return MENU + " ID " + menuID + Messages.ArduinoBoards_not_found; //$NON-NLS-1$
+	return "menu ID " + menuID + " not found";
     }
 
     public String getMenuIDFromName(String menuName) {
-	Map<String, String> menuSectionMap = getSection(MENU);
+	Map<String, String> menuSectionMap = getSection("menu");
 	for (Entry<String, String> curOption : menuSectionMap.entrySet()) {
 	    if (curOption.getValue().equals(menuName)) {
 		return curOption.getKey();
 	    }
 	}
-	return MENU + Messages.ArduinoBoards_name + menuName + Messages.ArduinoBoards_not_found;
+	return "menu name " + menuName + " not found";
     }
 
     public String getMenuItemIDFromName(String boardID, String menuID, String menuItemName) {
 	// look in the pre 1.5.4 way "menu".menuid.boardid.menuitemid=name
-	Map<String, String> menuSectionMap = getSection(MENU);
+	Map<String, String> menuSectionMap = getSection("menu");
 	for (Entry<String, String> curOption : menuSectionMap.entrySet()) {
 	    if (curOption.getValue().equals(menuItemName)) {
-		String[] keySplit = curOption.getKey().split("\\."); //$NON-NLS-1$
+		String[] keySplit = curOption.getKey().split("\\.");
 		if (keySplit.length == 3 && keySplit[0].equals(menuID) && keySplit[1].equals(boardID))
 		    return keySplit[2];
 	    }
 	}
 	// nothing found so look in the post 1.5.4 way boardid."menu".menuid.menuitemid=name
 	// TODO implement in 1.5.4 case
-	return "getMenuItemIDFromName not yet implemented in 1.5.4 way"; //$NON-NLS-1$
+	return "getMenuItemIDFromName not yet implemented in 1.5.4 way";
     }
 
     public String getMenuItemNameFromID(String boardID, String menuID, String menuItemID) {
 	// look in the pre 1.5.4 way "menu".menuid.boardid.menuitemid=name
-	Map<String, String> menuSectionMap = getSection(MENU);
-	String lookupValue = menuID + DOT + boardID + DOT + menuItemID;
+	Map<String, String> menuSectionMap = getSection("menu");
+	String lookupValue = menuID + "." + boardID + "." + menuItemID;
 	for (Entry<String, String> curOption : menuSectionMap.entrySet()) {
 	    if (curOption.getKey().equalsIgnoreCase(lookupValue))
 		return curOption.getValue();
 	}
 	// nothing found so look in the post 1.5.4 way boardid."menu".menuid.menuitemid=name
 	Map<String, String> BoardIDSectionMap = getSection(boardID);
-	String loopupValue = MENU + DOT + menuID + DOT + menuItemID;
+	String loopupValue = "menu." + menuID + "." + menuItemID;
 	for (Entry<String, String> curOption : BoardIDSectionMap.entrySet()) {
 	    if (curOption.getKey().equalsIgnoreCase(loopupValue))
 		return curOption.getValue();
 	}
 	// TODO implement 1.5.4 way
-	return Messages.ArduinoBoards_Get_menu_item_name_from_id_did_not_find + boardID + ' ' + menuID + ' ' + menuItemID;
+	return "getMenuItemNameFromID did not find " + boardID + " " + menuID + " " + menuItemID;
     }
 
 }

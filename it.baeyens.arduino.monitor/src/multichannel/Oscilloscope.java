@@ -17,8 +17,6 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 
-import it.baeyens.arduino.common.ArduinoConst;
-
 /**
  * Animated widget that tries to mimic an Oscilloscope.
  * 
@@ -59,20 +57,20 @@ public class Oscilloscope extends Canvas {
     public class Data {
 
 	Color fg;
-	protected int cursor = 50;
+	private int cursor = 50;
 	int width = DEFAULT_WIDTH;
 	int height = DEFAULT_HEIGHT;
-	protected int base;
+	private int base;
 	IntegerFiFoCircularStack stack;
 	int tailSize;
-	protected int lineWidth = 1;
-	protected boolean percentage = false;
+	private int lineWidth = 1;
+	private boolean percentage = false;
 	OscilloscopeDispatcher dispatcher;
 
 	/**
 	 * This contains the old or historical input and is used to paint the tail of the graph.
 	 */
-	protected int[] tail;
+	private int[] tail;
 
 	/**
 	 * This contains the actual values that where input by the user before scaling. If the user resized we can calculate how the tail would have
@@ -81,16 +79,16 @@ public class Oscilloscope extends Canvas {
 	 * @see Oscilloscope#tail
 	 */
 	// private int[] originalTailInput;
-	protected int originalTailSize;
+	private int originalTailSize;
 	boolean steady;
-	protected int tailFade = 25;
-	protected boolean fade;
-	protected boolean connect;
+	private int tailFade = 25;
+	private boolean fade;
+	private boolean connect;
 	int originalSteadyPosition = STEADYPOSITION_75PERCENT;
 	int baseOffset = BASE_CENTER;
-	protected ArrayList<OscilloscopeStackAdapter> stackListeners;
-	protected int progression = 0;
-	String name = ArduinoConst.EMPTY_STRING;
+	private ArrayList<OscilloscopeStackAdapter> stackListeners;
+	private int progression = 0;
+	String name = "";
 
     }
 
@@ -104,33 +102,33 @@ public class Oscilloscope extends Canvas {
     private int myhighValue = 0;
 
     private boolean ShowLabels = false;
-    private String myStatus = ArduinoConst.EMPTY_STRING;
+    private String myStatus = "";
 
     public String getStatus() {
-	return this.myStatus;
+	return myStatus;
     }
 
     public void setStatus(String status) {
-	this.myStatus = status;
+	myStatus = status;
     }
 
     public boolean isShowLabels() {
-	return this.ShowLabels;
+	return ShowLabels;
     }
 
     public void setShowLabels(boolean showLabels) {
-	this.ShowLabels = showLabels;
+	ShowLabels = showLabels;
     }
 
     public void SetChannelName(int channel, String name) {
-	this.chan[channel].name = name;
+	chan[channel].name = name;
     }
 
     /**
      * This set of values will draw a figure that is similar to the heart beat that you see on hospital monitors.
      */
-    public static final int[] HEARTBEAT = new int[] { 2, 10, 2, -16, 16, 44, 49, 44, 32, 14, -16, -38, -49, -47, -32, -10, 8, 6, 6, -2, 6, 4, 2, 0, 0,
-	    6, 8, 6 };
+    public static final int[] HEARTBEAT = new int[] { 2, 10, 2, -16, 16, 44, 49, 44, 32, 14, -16, -38, -49, -47, -32, -10, 8, 6, 6, -2, 6, 4, 2, 0,
+	    0, 6, 8, 6 };
     /**
      * Will draw a maximum tail.
      */
@@ -168,7 +166,7 @@ public class Oscilloscope extends Canvas {
 	final private int[] stack;
 	private int top;
 	private int bottom;
-	protected final int capacity;
+	private final int capacity;
 	private int storedValues;
 
 	/**
@@ -178,11 +176,11 @@ public class Oscilloscope extends Canvas {
 	 */
 	public IntegerFiFoCircularStack(int capacity) {
 	    if (capacity <= 1)
-		throw new RuntimeException(Messages.Oscilloscope_error_stack_size_to_small);
+		throw new RuntimeException("Stack capacity must be > 1");
 	    this.capacity = capacity;
-	    this.stack = new int[capacity];
-	    this.top = 0;
-	    this.bottom = 0;
+	    stack = new int[capacity];
+	    top = 0;
+	    bottom = 0;
 	}
 
 	/**
@@ -201,12 +199,12 @@ public class Oscilloscope extends Canvas {
 	 * Clears the stack.
 	 */
 	public void clear() {
-	    synchronized (this.stack) {
-		for (int i = 0; i < this.stack.length; i++) {
-		    this.stack[i] = 0;
+	    synchronized (stack) {
+		for (int i = 0; i < stack.length; i++) {
+		    stack[i] = 0;
 		}
-		this.top = 0;
-		this.bottom = 0;
+		top = 0;
+		bottom = 0;
 	    }
 	}
 
@@ -216,19 +214,19 @@ public class Oscilloscope extends Canvas {
 	 * @param value
 	 */
 	public void push(int value) {
-	    if (this.storedValues == this.capacity) {
-		this.top = this.bottom;
-		this.bottom++;
-		if (this.bottom == this.capacity) {
-		    this.bottom = 0;
+	    if (storedValues == capacity) {
+		top = bottom;
+		bottom++;
+		if (bottom == capacity) {
+		    bottom = 0;
 		}
 	    } else
-		this.storedValues++;
+		storedValues++;
 
-	    if (this.top == this.capacity)
-		this.top = 0;
+	    if (top == capacity)
+		top = 0;
 
-	    this.stack[this.top++] = value;
+	    stack[top++] = value;
 	}
 
 	/**
@@ -241,11 +239,11 @@ public class Oscilloscope extends Canvas {
 	    if (isEmpty())
 		return valueIfEmpty;
 
-	    this.storedValues--;
-	    int result = this.stack[this.bottom++];
+	    storedValues--;
+	    int result = stack[bottom++];
 
-	    if (this.bottom == this.capacity)
-		this.bottom = 0;
+	    if (bottom == capacity)
+		bottom = 0;
 
 	    return result;
 	}
@@ -267,8 +265,8 @@ public class Oscilloscope extends Canvas {
 	 * @return int
 	 */
 	public int peek(int valueIfEmpty) {
-	    if (this.storedValues > 0)
-		return this.stack[this.bottom];
+	    if (storedValues > 0)
+		return stack[bottom];
 	    return valueIfEmpty;
 	}
 
@@ -277,7 +275,7 @@ public class Oscilloscope extends Canvas {
 	 * @return boolean
 	 */
 	public boolean isEmpty() {
-	    return this.storedValues == 0;
+	    return storedValues == 0;
 	}
 
 	/**
@@ -285,7 +283,7 @@ public class Oscilloscope extends Canvas {
 	 * @return boolean
 	 */
 	public boolean isFull() {
-	    return this.storedValues == this.capacity;
+	    return storedValues == capacity;
 	}
 
 	/**
@@ -293,11 +291,11 @@ public class Oscilloscope extends Canvas {
 	 * @return boolean
 	 */
 	public int getLoad() {
-	    return this.storedValues;
+	    return storedValues;
 	}
 
 	public int getCapacity() {
-	    return this.capacity;
+	    return capacity;
 	}
     }
 
@@ -318,23 +316,23 @@ public class Oscilloscope extends Canvas {
     public Oscilloscope(int channels, OscilloscopeDispatcher dispatcher, Composite parent, int style, Color backgroundColor, Color foregroundColor,
 	    Color gridColor) {
 	super(parent, SWT.DOUBLE_BUFFERED | style);
-	this.bg = backgroundColor;
-	this.mGridColor = gridColor;
-	this.chan = new Data[channels];
-	for (int i = 0; i < this.chan.length; i++) {
+	bg = backgroundColor;
+	mGridColor = gridColor;
+	chan = new Data[channels];
+	for (int i = 0; i < chan.length; i++) {
 
-	    this.chan[i] = new Data();
+	    chan[i] = new Data();
 
 	    if (dispatcher == null)
-		this.chan[i].dispatcher = new OscilloscopeDispatcher(this);
+		chan[i].dispatcher = new OscilloscopeDispatcher(i, this);
 	    else {
-		this.chan[i].dispatcher = dispatcher;
+		chan[i].dispatcher = dispatcher;
 		dispatcher.setOscilloscope(this);
 	    }
 
-	    setBackground(this.bg);
+	    setBackground(bg);
 
-	    this.chan[i].fg = foregroundColor;
+	    chan[i].fg = foregroundColor;
 
 	    setTailSize(i, TAILSIZE_DEFAULT);
 	}
@@ -349,16 +347,16 @@ public class Oscilloscope extends Canvas {
 	addPaintListener(new PaintListener() {
 	    @Override
 	    public void paintControl(PaintEvent e) {
-		if (!Oscilloscope.this.paintBlock)
+		if (!paintBlock)
 		    Oscilloscope.this.paintControl(e);
-		Oscilloscope.this.paintBlock = false;
+		paintBlock = false;
 	    }
 	});
 
 	addControlListener(new ControlListener() {
 	    @Override
 	    public void controlResized(ControlEvent e) {
-		Oscilloscope.this.paintBlock = true;
+		paintBlock = true;
 		Oscilloscope.this.controlResized(e);
 
 	    }
@@ -387,9 +385,9 @@ public class Oscilloscope extends Canvas {
 	setSizeInternal(getSize().x, getSize().y);
 
 	if (getBounds().width > 0) {
-	    for (int channel = 0; channel < this.chan.length; channel++) {
+	    for (int channel = 0; channel < chan.length; channel++) {
 
-		setSteady(channel, this.chan[channel].steady, this.chan[channel].originalSteadyPosition);
+		setSteady(channel, chan[channel].steady, chan[channel].originalSteadyPosition);
 		setTailSizeInternal(channel);
 	    }
 	}
@@ -407,24 +405,24 @@ public class Oscilloscope extends Canvas {
      */
     public int getTailSize(int channel) {
 	checkWidget();
-	return this.chan[channel].tailSize;
+	return chan[channel].tailSize;
     }
 
     private void setSizeInternal(int width, int height) {
 
-	for (int c = 0; c < this.chan.length; c++) {
+	for (int c = 0; c < chan.length; c++) {
 
-	    this.chan[c].width = width;
-	    this.chan[c].height = height;
+	    chan[c].width = width;
+	    chan[c].height = height;
 
 	    // calculate the base of the line
 	    calculateBase(c);
 
 	    if (width > 1)
-		if (this.chan[c].stack == null)
-		    this.chan[c].stack = new IntegerFiFoCircularStack(width);
+		if (chan[c].stack == null)
+		    chan[c].stack = new IntegerFiFoCircularStack(width);
 		else
-		    this.chan[c].stack = new IntegerFiFoCircularStack(width, this.chan[c].stack);
+		    chan[c].stack = new IntegerFiFoCircularStack(width, chan[c].stack);
 	}
     }
 
@@ -434,7 +432,7 @@ public class Oscilloscope extends Canvas {
      * @return baseOffset
      */
     public int getBaseOffset(int channel) {
-	return this.chan[channel].baseOffset;
+	return chan[channel].baseOffset;
     }
 
     /**
@@ -446,21 +444,21 @@ public class Oscilloscope extends Canvas {
     public void setBaseOffset(int channel, int baseOffset) {
 
 	if (baseOffset > 100)
-	    this.chan[channel].baseOffset = 100;
+	    chan[channel].baseOffset = 100;
 
 	else if (baseOffset < -100)
-	    this.chan[channel].baseOffset = -100;
+	    chan[channel].baseOffset = -100;
 	else
-	    this.chan[channel].baseOffset = baseOffset;
+	    chan[channel].baseOffset = baseOffset;
 
 	calculateBase(channel);
     }
 
     private void calculateBase(int channel) {
-	if ((this.myLowRangeValue != 0) || (this.myhighValue != 0))
-	    this.chan[channel].base = 0;
-	else if (this.chan[channel].height > 2)
-	    this.chan[channel].base = (this.chan[channel].height * +(100 - getBaseOffset(channel))) / 100;
+	if ((myLowRangeValue != 0) || (myhighValue != 0))
+	    chan[channel].base = 0;
+	else if (chan[channel].height > 2)
+	    chan[channel].base = (chan[channel].height * +(100 - getBaseOffset(channel))) / 100;
     }
 
     protected void widgetDisposed(DisposeEvent e) {
@@ -471,10 +469,15 @@ public class Oscilloscope extends Canvas {
     }
 
     protected int ConvertValueToScreenPosition(int Value, int ScreenHeight) {
-	if ((this.myLowRangeValue == 0) && (this.myhighValue == 0))
+	if ((myLowRangeValue == 0) && (myhighValue == 0))
 	    return ScreenHeight - Value;
-	float ret = ((float) (Value - this.myLowRangeValue) / (float) (this.myhighValue - this.myLowRangeValue)) * ScreenHeight;
+	float ret = ((float) (Value - myLowRangeValue) / (float) (myhighValue - myLowRangeValue)) * (float) ScreenHeight;
 	return ScreenHeight - (int) ret;
+    }
+
+    protected int ConvertScreenPositionToValue(int screenYPosition) {
+	// todo write this stuff
+	return 0;
     }
 
     protected void PositionPolyLine(int[] l1) {
@@ -486,9 +489,9 @@ public class Oscilloscope extends Canvas {
 
     protected void paintControl(PaintEvent e) {
 
-	// long start = System.currentTimeMillis();
+	long start = System.currentTimeMillis();
 
-	for (int c = 0; c < this.chan.length; c++) {
+	for (int c = 0; c < chan.length; c++) {
 
 	    // if (chan[c].tailSize <= 0) {
 	    // chan[c].stack.popNegate(0);
@@ -532,14 +535,14 @@ public class Oscilloscope extends Canvas {
 		}
 
 	    } else {
-		// long time = System.nanoTime();
+		long time = System.nanoTime();
 		gc.drawPolyline(l1);
 		gc.drawPolyline(l2);
 		// System.out.println(System.nanoTime() - time + " nanoseconds");
 	    }
 
 	    // Connects the head with the tail
-	    if (isConnect(c) && !isFade(c) && this.chan[c].originalTailSize == TAILSIZE_MAX && l1.length > 0 && l2.length > 0) {
+	    if (isConnect(c) && !isFade(c) && chan[c].originalTailSize == TAILSIZE_MAX && l1.length > 0 && l2.length > 0) {
 		gc.drawLine(l2[l2.length - 2], l2[l2.length - 1], l1[0], l1[1]);
 	    }
 	}
@@ -550,11 +553,11 @@ public class Oscilloscope extends Canvas {
 
     public Color getForeground(int channel) {
 	checkWidget();
-	return this.chan[channel].fg;
+	return chan[channel].fg;
     }
 
     public void setForeground(int channel, Color color) {
-	this.chan[channel].fg = color;
+	chan[channel].fg = color;
     }
 
     /**
@@ -575,39 +578,39 @@ public class Oscilloscope extends Canvas {
 	// if (chan[c].stack.isEmpty() && chan[c].stackListeners != null)
 	// notifyListeners(c);
 
-	splitPos = this.chan[c].tailSize * 4;
+	splitPos = chan[c].tailSize * 4;
 
 	if (!isSteady(c))
-	    this.chan[c].cursor++;
-	if (this.chan[c].cursor >= this.chan[c].width)
-	    this.chan[c].cursor = 0;
+	    chan[c].cursor++;
+	if (chan[c].cursor >= chan[c].width)
+	    chan[c].cursor = 0;
 
-	line1 = new int[this.chan[c].tailSize * 4];
-	line2 = new int[this.chan[c].tailSize * 4];
+	line1 = new int[chan[c].tailSize * 4];
+	line2 = new int[chan[c].tailSize * 4];
 
 	// chan[c].tail[chan[c].tailSize] = transform(c, chan[c].width,
 	// chan[c].height, chan[c].stack.popNegate(0));
 
-	for (int i = 0; i < this.chan[c].tailSize; i++) {
+	for (int i = 0; i < chan[c].tailSize; i++) {
 
-	    int posx = this.chan[c].cursor - this.chan[c].tailSize + i;
+	    int posx = chan[c].cursor - chan[c].tailSize + i;
 	    int pos = i * 4;
 	    if (posx < 0) {
-		posx += this.chan[c].width;
+		posx += chan[c].width;
 		line1[pos] = posx - 1;
 
-		line1[pos + 1] = getBase(c) + (isSteady(c) ? 0 : this.chan[c].tail[i]);
+		line1[pos + 1] = getBase(c) + (isSteady(c) ? 0 : chan[c].tail[i]);
 		line1[pos + 2] = posx;
-		line1[pos + 3] = getBase(c) + (isSteady(c) ? 0 : this.chan[c].tail[i + 1]);
+		line1[pos + 3] = getBase(c) + (isSteady(c) ? 0 : chan[c].tail[i + 1]);
 	    }
 
 	    else {
-		if (splitPos == this.chan[c].tailSize * 4)
+		if (splitPos == chan[c].tailSize * 4)
 		    splitPos = pos;
 		line2[pos] = posx - 1;
-		line2[pos + 1] = getBase(c) + this.chan[c].tail[i];
+		line2[pos + 1] = getBase(c) + chan[c].tail[i];
 		line2[pos + 2] = posx;
-		line2[pos + 3] = (getBase(c) + this.chan[c].tail[i + 1]);
+		line2[pos + 3] = (getBase(c) + chan[c].tail[i + 1]);
 	    }
 	    // chan[c].tail[tailIndex - 1] = chan[c].tail[tailIndex++];
 	}
@@ -615,7 +618,7 @@ public class Oscilloscope extends Canvas {
 
 	int[] l1 = new int[splitPos];
 	System.arraycopy(line1, 0, l1, 0, l1.length);
-	int[] l2 = new int[(this.chan[c].tailSize * 4) - splitPos];
+	int[] l2 = new int[(chan[c].tailSize * 4) - splitPos];
 	System.arraycopy(line2, splitPos, l2, 0, l2.length);
 
 	return new Object[] { l1, l2 };
@@ -639,6 +642,19 @@ public class Oscilloscope extends Canvas {
     // }
 
     /**
+     * Transforms the value before it is drawn.
+     * 
+     * @param value
+     *            the next value to be processed
+     * @return the transformed value
+     */
+    private int transform(int channel, int vWidth, int vHeight, int value) {
+	if (isPercentage(channel))
+	    return (((vHeight / 2) * value) / 100);
+	return value;
+    }
+
+    /**
      * This method sets the view of the monitor This range is used for all channels which are not set on percentage To go back to default set lowValue
      * and highValue back to 0 This method invalidates the widget so it gets redrawn.
      * 
@@ -648,8 +664,8 @@ public class Oscilloscope extends Canvas {
      *            The value at the top of the monitor
      */
     public void setRange(int lowValue, int highValue) {
-	this.myLowRangeValue = lowValue;
-	this.myhighValue = highValue;
+	myLowRangeValue = lowValue;
+	myhighValue = highValue;
 	setnewBackgroundImage();
 
     }
@@ -676,15 +692,14 @@ public class Oscilloscope extends Canvas {
 	    return null;
 	Image TheImage = new Image(getDisplay(), rect);
 	GC gc = new GC(TheImage);
-	gc.setBackground(this.bg);
+	gc.setBackground(bg);
 	int step = (getSize().y - 20) / (numHorizontalLines - 1);
 	int width = getSize().x;
 	int height = getSize().y;
 	gc.fillRectangle(0, 0, width, getSize().y);
-	gc.setForeground(this.mGridColor);
-	int Value = this.myLowRangeValue + (int) (10.0 * (this.myhighValue - this.myLowRangeValue) / rect.height);
-	int RangeStep = (int) ((float) (rect.height - 20) / (float) (numHorizontalLines - 1) * (this.myhighValue - this.myLowRangeValue)
-		/ rect.height);
+	gc.setForeground(mGridColor);
+	int Value = myLowRangeValue + (int) (10.0 * (float) (myhighValue - myLowRangeValue) / (float) rect.height);
+	int RangeStep = (int) ((float) (rect.height - 20) / (float) (numHorizontalLines - 1) * (float) (myhighValue - myLowRangeValue) / (float) rect.height);
 	for (int i = 0; i < numHorizontalLines; i++) {
 	    gc.drawLine(0, 10 + (step * i), width, 10 + (step * i));
 	    gc.drawString(Integer.toString(Value + RangeStep * (numHorizontalLines - (i + 1))), 10, 10 + (step * i));
@@ -694,14 +709,14 @@ public class Oscilloscope extends Canvas {
 	    gc.drawLine(10 + (step * i), 0, 10 + (step * i), height);
 	}
 	step = (int) Math.round(gc.getFont().getFontData()[0].height * 1.5);
-	if (this.ShowLabels) {
-	    for (int i = 0; i < this.chan.length; i++) {
-		gc.setForeground(this.chan[i].fg);
-		gc.drawString(this.chan[i].name, 50, 10 + (step * i));
+	if (ShowLabels) {
+	    for (int i = 0; i < chan.length; i++) {
+		gc.setForeground(chan[i].fg);
+		gc.drawString(chan[i].name, 50, 10 + (step * i));
 	    }
 	}
-	gc.setForeground(this.chan[0].fg);
-	gc.drawString(this.myStatus, 200, 10);
+	gc.setForeground(chan[0].fg);
+	gc.drawString(myStatus, 200, 10);
 
 	// gc.drawString(string, x, y)
 	gc.dispose();
@@ -713,7 +728,7 @@ public class Oscilloscope extends Canvas {
      * @return the value represented by the bottom of the oscilloscope
      */
     public int getLowRangeValue() {
-	return this.myLowRangeValue;
+	return myLowRangeValue;
     }
 
     /**
@@ -721,14 +736,14 @@ public class Oscilloscope extends Canvas {
      * @return the value represented by the top of the oscilloscope
      */
     public int getHighRangeValue() {
-	return this.myhighValue;
+	return myhighValue;
     }
 
     /**
      * @return the base of the line
      */
     public int getBase(int channel) {
-	return this.chan[channel].base;
+	return chan[channel].base;
     }
 
     /**
@@ -736,7 +751,7 @@ public class Oscilloscope extends Canvas {
      * @see #setProgression(int)
      */
     public int getProgression(int channel) {
-	return this.chan[channel].progression;
+	return chan[channel].progression;
     }
 
     /**
@@ -747,8 +762,16 @@ public class Oscilloscope extends Canvas {
      */
     public void setProgression(int channel, int progression) {
 	if (progression > 0)
-	    this.chan[channel].progression = progression;
+	    chan[channel].progression = progression;
 
+    }
+
+    private void notifyListeners(int channel) {
+	if (chan[channel].stackListeners == null || chan[channel].stackListeners.size() == 0)
+	    return;
+	for (int i = 0; i < chan[channel].stackListeners.size(); i++) {
+	    ((OscilloscopeStackAdapter) chan[channel].stackListeners.get(i)).stackEmpty(this, channel);
+	}
     }
 
     /**
@@ -756,7 +779,7 @@ public class Oscilloscope extends Canvas {
      */
     public boolean isConnect(int channel) {
 	checkWidget();
-	return this.chan[channel].connect;
+	return chan[channel].connect;
     }
 
     /**
@@ -764,7 +787,7 @@ public class Oscilloscope extends Canvas {
      */
     public int getChannels() {
 	checkWidget();
-	return this.chan.length;
+	return chan.length;
     }
 
     /**
@@ -774,7 +797,7 @@ public class Oscilloscope extends Canvas {
      */
     public void setConnect(int channel, boolean connectHeadAndTail) {
 	checkWidget();
-	this.chan[channel].connect = connectHeadAndTail;
+	chan[channel].connect = connectHeadAndTail;
     }
 
     /**
@@ -783,7 +806,7 @@ public class Oscilloscope extends Canvas {
      */
     public boolean isFade(int channel) {
 	checkWidget();
-	return this.chan[channel].fade;
+	return chan[channel].fade;
     }
 
     /**
@@ -799,10 +822,10 @@ public class Oscilloscope extends Canvas {
      */
     public void setFade(int channel, boolean fade) {
 	checkWidget();
-	this.chan[channel].fade = fade;
+	chan[channel].fade = fade;
     }
 
-    private static void setAlpha(GC gc, double fade) {
+    private void setAlpha(GC gc, double fade) {
 
 	if (gc.getAlpha() == fade)
 	    return;
@@ -820,7 +843,7 @@ public class Oscilloscope extends Canvas {
      */
     public int getTailFade(int channel) {
 	checkWidget();
-	return this.chan[channel].tailFade;
+	return chan[channel].tailFade;
     }
 
     /**
@@ -829,7 +852,7 @@ public class Oscilloscope extends Canvas {
      */
     public boolean isSteady(int channel) {
 	checkWidget();
-	return this.chan[channel].steady;
+	return chan[channel].steady;
     }
 
     /**
@@ -847,11 +870,11 @@ public class Oscilloscope extends Canvas {
 	if (!super.isVisible())
 	    return;
 
-	if (this.chan[channel].stack == null)
-	    this.chan[channel].stack = new IntegerFiFoCircularStack(this.chan[channel].width);
+	if (chan[channel].stack == null)
+	    chan[channel].stack = new IntegerFiFoCircularStack(chan[channel].width);
 
 	for (int i = 0; i < values.length; i++) {
-	    this.chan[channel].stack.push(values[i]);
+	    chan[channel].stack.push(values[i]);
 	}
     }
 
@@ -868,15 +891,15 @@ public class Oscilloscope extends Canvas {
 	if (!super.isVisible())
 	    return;
 
-	if (this.chan[channel].stack.capacity > 0)
-	    this.chan[channel].stack.push(value);
+	if (chan[channel].stack.capacity > 0)
+	    chan[channel].stack.push(value);
     }
 
     public void setValue(int channel, int value) {
 	// chan[c].tail[tailIndex - 1] = chan[c].tail[tailIndex++];
-	int copysize = this.chan[channel].tail.length;
-	System.arraycopy(this.chan[channel].tail, 1, this.chan[channel].tail, 0, copysize - 1);
-	this.chan[channel].tail[this.chan[channel].tailSize] = value;
+	int copysize = chan[channel].tail.length;
+	System.arraycopy(chan[channel].tail, 1, chan[channel].tail, 0, copysize - 1);
+	chan[channel].tail[chan[channel].tailSize] = value;
     }
 
     /**
@@ -891,59 +914,59 @@ public class Oscilloscope extends Canvas {
      * @see #TAILSIZE_FILL
      * @see #TAILSIZE_MAX
      */
-    public void setTailSize(int channel, int newSize) {
+    public void setTailSize(int channel, int size) {
 	checkWidget();
-	int size = newSize;
+
 	if (size == TAILSIZE_FILL && !isSteady(channel))
 	    size = TAILSIZE_MAX;
 
-	if (this.chan[channel].originalTailSize != size) {
+	if (chan[channel].originalTailSize != size) {
 	    tailSizeCheck(size);
-	    this.chan[channel].originalTailSize = size;
+	    chan[channel].originalTailSize = size;
 	    setTailSizeInternal(channel);
 	}
     }
 
-    private static void tailSizeCheck(int size) {
+    private void tailSizeCheck(int size) {
 	if (size < -3 || size == 0)
-	    throw new RuntimeException(Messages.Oscilloscope_error_invalid_tail_size + size);
+	    throw new RuntimeException("Invalid tail size " + size);
     }
 
     private void setTailSizeInternal(int channel) {
 
-	if (this.chan[channel].originalTailSize == TAILSIZE_DEFAULT) {
+	if (chan[channel].originalTailSize == TAILSIZE_DEFAULT) {
 	    // tail = new int[(width / 4) * 3];
-	    this.chan[channel].tailSize = (this.chan[channel].width / 4) * 3;
-	    this.chan[channel].tailSize--;
-	} else if (this.chan[channel].originalTailSize == TAILSIZE_FILL) {
+	    chan[channel].tailSize = (chan[channel].width / 4) * 3;
+	    chan[channel].tailSize--;
+	} else if (chan[channel].originalTailSize == TAILSIZE_FILL) {
 	    if (isSteady(channel)) {
-		this.chan[channel].tailSize = this.chan[channel].originalSteadyPosition - 1;
+		chan[channel].tailSize = chan[channel].originalSteadyPosition - 1;
 	    } else { // act as if TAILSIZE_MAX
 		     // tail = new int[width - 2 + 1];
-		this.chan[channel].tailSize = this.chan[channel].width - 2;
+		chan[channel].tailSize = chan[channel].width - 2;
 	    }
-	} else if (this.chan[channel].originalTailSize == TAILSIZE_MAX || this.chan[channel].originalTailSize > this.chan[channel].width) {
+	} else if (chan[channel].originalTailSize == TAILSIZE_MAX || chan[channel].originalTailSize > chan[channel].width) {
 	    // tail = new int[width - 2 + 1];
-	    this.chan[channel].tailSize = this.chan[channel].width - 2;
-	} else if (this.chan[channel].tailSize != this.chan[channel].originalTailSize) {
+	    chan[channel].tailSize = chan[channel].width - 2;
+	} else if (chan[channel].tailSize != chan[channel].originalTailSize) {
 	    // tail = new int[originalTailSize + 1];
-	    this.chan[channel].tailSize = this.chan[channel].originalTailSize;
+	    chan[channel].tailSize = chan[channel].originalTailSize;
 	}
 
 	// Transform the old tail. This is we want to see sort of the same form
 	// after resize.
-	int[] oldTail = this.chan[channel].tail;
+	int[] oldTail = chan[channel].tail;
 	if (oldTail == null) {
-	    this.chan[channel].tail = new int[this.chan[channel].tailSize + 1];
+	    chan[channel].tail = new int[chan[channel].tailSize + 1];
 	} else {
-	    this.chan[channel].tail = new int[this.chan[channel].tailSize + 1];
-	    if (this.chan[channel].tail.length >= oldTail.length) {
+	    chan[channel].tail = new int[chan[channel].tailSize + 1];
+	    if (chan[channel].tail.length >= oldTail.length) {
 		for (int i = 0; i < oldTail.length; i++) {
-		    this.chan[channel].tail[this.chan[channel].tail.length - 1 - i] = oldTail[oldTail.length - 1 - i];
+		    chan[channel].tail[chan[channel].tail.length - 1 - i] = oldTail[oldTail.length - 1 - i];
 		}
 	    } else {
-		for (int i = 0; i < this.chan[channel].tail.length; i++) {
-		    this.chan[channel].tail[this.chan[channel].tail.length - 1 - i] = oldTail[oldTail.length - 1 - i];
+		for (int i = 0; i < chan[channel].tail.length; i++) {
+		    chan[channel].tail[chan[channel].tail.length - 1 - i] = oldTail[oldTail.length - 1 - i];
 		}
 	    }
 	}
@@ -985,7 +1008,7 @@ public class Oscilloscope extends Canvas {
     public void setLineWidth(int channel, int lineWidth) {
 	checkWidget();
 	if (lineWidth > 0)
-	    this.chan[channel].lineWidth = lineWidth;
+	    chan[channel].lineWidth = lineWidth;
     }
 
     /**
@@ -994,7 +1017,7 @@ public class Oscilloscope extends Canvas {
      */
     public int getLineWidth(int channel) {
 	checkWidget();
-	return this.chan[channel].lineWidth;
+	return chan[channel].lineWidth;
     }
 
     /**
@@ -1006,7 +1029,7 @@ public class Oscilloscope extends Canvas {
      */
     public void setPercentage(int channel, boolean percentage) {
 	checkWidget();
-	this.chan[channel].percentage = percentage;
+	chan[channel].percentage = percentage;
     }
 
     /**
@@ -1015,7 +1038,7 @@ public class Oscilloscope extends Canvas {
      */
     public boolean isPercentage(int channel) {
 	checkWidget();
-	return this.chan[channel].percentage;
+	return chan[channel].percentage;
     }
 
     /**
@@ -1026,13 +1049,13 @@ public class Oscilloscope extends Canvas {
      */
     public void setSteady(int channel, boolean steady, int steadyPosition) {
 	checkWidget();
-	this.chan[channel].steady = steady;
-	this.chan[channel].originalSteadyPosition = steadyPosition;
+	chan[channel].steady = steady;
+	chan[channel].originalSteadyPosition = steadyPosition;
 	if (steady)
 	    if (steadyPosition == STEADYPOSITION_75PERCENT)
-		this.chan[channel].cursor = (int) (this.chan[channel].width * 0.75);
-	    else if (steadyPosition > 0 && steadyPosition < this.chan[channel].width)
-		this.chan[channel].cursor = steadyPosition;
+		chan[channel].cursor = (int) ((double) chan[channel].width * (double) 0.75);
+	    else if (steadyPosition > 0 && steadyPosition < chan[channel].width)
+		chan[channel].cursor = steadyPosition;
 	// setTailSizeInternal();
     }
 
@@ -1042,14 +1065,13 @@ public class Oscilloscope extends Canvas {
      * 
      * @param tailFade
      */
-    public void setTailFade(int channel, int newTailFade) {
-	int tailFade = newTailFade;
+    public void setTailFade(int channel, int tailFade) {
 	checkWidget();
 	if (tailFade > 100)
 	    tailFade = 100;
 	if (tailFade < 1)
 	    tailFade = 1;
-	this.chan[channel].tailFade = tailFade;
+	chan[channel].tailFade = tailFade;
     }
 
     /**
@@ -1059,10 +1081,10 @@ public class Oscilloscope extends Canvas {
      */
     public synchronized void addStackListener(int channel, OscilloscopeStackAdapter listener) {
 	checkWidget();
-	if (this.chan[channel].stackListeners == null)
-	    this.chan[channel].stackListeners = new ArrayList<>();
-	if (!this.chan[channel].stackListeners.contains(listener))
-	    this.chan[channel].stackListeners.add(listener);
+	if (chan[channel].stackListeners == null)
+	    chan[channel].stackListeners = new ArrayList<OscilloscopeStackAdapter>();
+	if (!chan[channel].stackListeners.contains(listener))
+	    chan[channel].stackListeners.add(listener);
     }
 
     /**
@@ -1072,21 +1094,21 @@ public class Oscilloscope extends Canvas {
      */
     public void removeStackListener(int channel, OscilloscopeStackAdapter listener) {
 	checkWidget();
-	if (this.chan[channel].stackListeners != null) {
-	    this.chan[channel].stackListeners.remove(listener);
-	    if (this.chan[channel].stackListeners.size() == 0)
-		synchronized (this.chan[channel].stackListeners) {
-		    this.chan[channel].stackListeners = null;
+	if (chan[channel].stackListeners != null) {
+	    chan[channel].stackListeners.remove(listener);
+	    if (chan[channel].stackListeners.size() == 0)
+		synchronized (chan[channel].stackListeners) {
+		    chan[channel].stackListeners = null;
 		}
 	}
     }
 
     public OscilloscopeDispatcher getDispatcher(int channel) {
-	return this.chan[channel].dispatcher;
+	return chan[channel].dispatcher;
     }
 
     public void setDispatcher(int channel, OscilloscopeDispatcher dispatcher) {
-	this.chan[channel].dispatcher = dispatcher;
+	chan[channel].dispatcher = dispatcher;
     }
 
     @Override
