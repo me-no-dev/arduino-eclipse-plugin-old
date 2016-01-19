@@ -77,7 +77,8 @@ public class UploadSketchWrapper {
 
     String host = ArduinoHelpers.getHostFromComPort(MComPort);
     
-    myHighLevelConsoleStream.println("MComPort: "+MComPort);
+    //myHighLevelConsoleStream.println("MComPort: "+MComPort);
+    //myHighLevelConsoleStream.println("Host: "+host);
     
     
     if (host != null && activator.bonjourDiscovery.isNetworkBoard(host)) {
@@ -92,10 +93,10 @@ public class UploadSketchWrapper {
         realUploader = new SSHUpload(myHighLevelConsoleStream, myOutconsoleStream, myErrconsoleStream, password, host, login);
         uploadJobName = ArduinoConst.Upload_ssh;
       } else {
-        myHighLevelConsoleStream.println("using generic network uploader");
-        myHighLevelConsoleStream.println("Address: "+activator.bonjourDiscovery.getAddress(host));
-        myHighLevelConsoleStream.println("Port: "+activator.bonjourDiscovery.getPort(host));
-        myHighLevelConsoleStream.println("Auth: "+ activator.bonjourDiscovery.hasAuth(host));
+        //myHighLevelConsoleStream.println("using generic network uploader");
+        //myHighLevelConsoleStream.println("Address: "+activator.bonjourDiscovery.getAddress(host));
+        //myHighLevelConsoleStream.println("Port: "+activator.bonjourDiscovery.getPort(host));
+        //myHighLevelConsoleStream.println("Auth: "+ activator.bonjourDiscovery.hasAuth(host));
         
         String password = "";
         if(activator.bonjourDiscovery.hasAuth(host)){
