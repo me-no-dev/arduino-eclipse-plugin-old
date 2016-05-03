@@ -39,30 +39,9 @@ public class ScopeView extends ViewPart implements ServiceListener {
     Oscilloscope myScope = null;
     ScopeListener myScopelistener = null;
     Serial mySerial = null;
-
-    private static final String flagMonitor = "F" + "m" + "S" + "t" + "a" + "t" + "u" + "s";
-    String uri = "h tt p://bae yens.i t/ec li pse/do wnl oad/Sc opeS tart.h t ml?m=";
     public Object mstatus; // status of the scope
 
-    public ScopeView() {
-
-	Job job = new Job("pluginSerialmonitorInitiator") {
-	    @Override
-	    protected IStatus run(IProgressMonitor monitor) {
-		try {
-		    IEclipsePreferences mySCope = InstanceScope.INSTANCE.getNode(ArduinoConst.NODE_ARDUINO);
-		    int curFsiStatus = mySCope.getInt(flagMonitor, 0) + 1;
-		    mySCope.putInt(flagMonitor, curFsiStatus);
-		    URL pluginStartInitiator = new URL(uri.replaceAll(" ", "") + Integer.toString(curFsiStatus));
-		    mstatus = pluginStartInitiator.getContent();
-		} catch (Exception e) {// JABA is not going to add code
-		}
-		return Status.OK_STATUS;
-	    }
-	};
-	job.setPriority(Job.DECORATE);
-	job.schedule();
-    }
+    public ScopeView() {}
 
     @Override
     public void createPartControl(Composite parent) {

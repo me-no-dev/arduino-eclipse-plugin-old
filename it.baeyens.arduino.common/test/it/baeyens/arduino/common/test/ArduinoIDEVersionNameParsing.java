@@ -41,6 +41,9 @@ public class ArduinoIDEVersionNameParsing {
 	VersionList.put("1.6.5-r3", "10605");
 	VersionList.put("1.6.5-r4", "10605");
 	VersionList.put("1.6.5-r5", "10605");
+	VersionList.put("1.6.6", "10606");
+	VersionList.put("1.6.7", "10607");
+	VersionList.put("1.6.8", "10608");
 	for (Entry<String, String> currentVersion : VersionList.entrySet()) {
 	    assertEquals(currentVersion.getValue(), ArduinoInstancePreferences.GetArduinoDefineValueInternal(currentVersion.getKey()));
 	}

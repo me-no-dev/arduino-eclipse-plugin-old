@@ -419,17 +419,15 @@ public class Common extends ArduinoInstancePreferences {
 		if (theViewRef != null && viewCount >= 1) {
 		    IViewPart view = theViewRef.getView(false);
 		    if (view != null) {
-			ISelection cdtSelection = view.getSite().getSelectionProvider().getSelection();
-			if (cdtSelection != null) {
-			    if (!cdtSelection.isEmpty()) {
-				if (!cdtSelection.equals(selection)) { // avoids
-								       // infinite
-								       // recursion
-				    getSelectedProjects(cdtSelection);
-				    return;
+				ISelection cdtSelection = view.getSite().getSelectionProvider().getSelection();
+				if (cdtSelection != null) {
+				    if (!cdtSelection.isEmpty()) {
+						if (!cdtSelection.equals(selection)) {
+							getSelectedProjects(cdtSelection);
+						    return;
+						}
+				    }
 				}
-			    }
-			}
 		    }
 		}
 	    }
@@ -437,48 +435,47 @@ public class Common extends ArduinoInstancePreferences {
     }
 
     public static boolean StopSerialMonitor(String mComPort) {
-	if (OtherSerialUser != null) {
-	    return OtherSerialUser.PauzePort(mComPort);
-	}
-	return false;
+		if (OtherSerialUser != null) {
+		    return OtherSerialUser.PauzePort(mComPort);
+		}
+		return false;
     }
 
     public static void StartSerialMonitor(String mComPort) {
-	if (OtherSerialUser != null) {
-	    OtherSerialUser.ResumePort(mComPort);
-	}
-
+		if (OtherSerialUser != null) {
+		    OtherSerialUser.ResumePort(mComPort);
+		}
     }
 
     public static String[] listComPorts() {
-	Vector<String> SerialList = Serial.list();
-	String outgoing[] = new String[SerialList.size()];
-	SerialList.copyInto(outgoing);
-	return outgoing;
+		Vector<String> SerialList = Serial.list();
+		String outgoing[] = new String[SerialList.size()];
+		SerialList.copyInto(outgoing);
+		return outgoing;
     }
 
     public static String[] listBaudRates() {
-	String outgoing[] = { "115200", "57600", "38400", "31250", "28800", "19200", "14400", "9600", "4800", "2400", "1200", "300" };
-	return outgoing;
+		String outgoing[] = { "921600", "460800", "230400", "115200", "57600", "38400", "31250", "28800", "19200", "14400", "9600", "4800", "2400", "1200", "300" };
+		return outgoing;
     }
 
     public static String[] listLineEndings() {
-	String outgoing[] = { "none", "CR", "NL", "CR/NL" };
-	return outgoing;
+		String outgoing[] = { "none", "CR", "NL", "CR/NL" };
+		return outgoing;
     }
 
     public static String getLineEnding(int selectionIndex) {
-	switch (selectionIndex) {
-	default:
-	case 0:
-	    return "";
-	case 1:
-	    return "\r";
-	case 2:
-	    return "\n";
-	case 3:
-	    return "\r\n";
-	}
+		switch (selectionIndex) {
+			default:
+			case 0:
+			    return "";
+			case 1:
+			    return "\r";
+			case 2:
+			    return "\n";
+			case 3:
+			    return "\r\n";
+		}
     }
 
     /**

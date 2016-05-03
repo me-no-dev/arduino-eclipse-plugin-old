@@ -51,7 +51,6 @@ public class Activator extends AbstractUIPlugin {
     private static final String uploadflag = "F" + "u" + "S" + "t" + "a" + "t" + "u" + "s";
     private static final String buildflag = "F" + "u" + "S" + "t" + "a" + "t" + "u" + "b";
     private static final String Localflag = "l" + flagStart;
-    private static final String helploc = "http://www.baeyens.it/eclipse/remind3_0.html";
 
     /**
      * The constructor
@@ -86,23 +85,11 @@ public class Activator extends AbstractUIPlugin {
 	    protected IStatus run(IProgressMonitor monitor) {
 
 		IEclipsePreferences myScope = InstanceScope.INSTANCE.getNode(ArduinoConst.NODE_ARDUINO);
-		int curFsiStatus = myScope.getInt(flagStart, 0) + myScope.getInt(flagMonitor, 0) + myScope.getInt(uploadflag, 0)
-			+ myScope.getInt(buildflag, 0);
+		int curFsiStatus = myScope.getInt(flagStart, 0) + myScope.getInt(flagMonitor, 0) + myScope.getInt(uploadflag, 0) + myScope.getInt(buildflag, 0);
 		int lastFsiStatus = myScope.getInt(Localflag, 0);
 		if ((curFsiStatus - lastFsiStatus) > 50) {
-		    if (isInternetReachable()) {
 			myScope.putInt(Localflag, curFsiStatus);
-			try {
-			    myScope.flush();
-			} catch (BackingStoreException e) {
-			    // this should not happen
-			}
-			PleaseHelp.DoHelp(helploc);
-			return Status.OK_STATUS; // once per run will be
-						 // sufficient
-		    }
 		}
-		remind();
 		return Status.OK_STATUS;
 	    }
 	};
@@ -125,25 +112,6 @@ public class Activator extends AbstractUIPlugin {
     }
 
     static boolean isInternetReachable() {
-	HttpURLConnection urlConnect = null;
-
-	try {
-	    // make a URL to a known source
-	    URL url = new URL(helploc);
-	    // open a connection to that source
-	    urlConnect = (HttpURLConnection) url.openConnection();
-	    // trying to retrieve data from the source. If there is no
-	    // connection, this line will fail
-	    urlConnect.getContent();
-	} catch (UnknownHostException e) {
-	    return false;
-	} catch (IOException e) {
-	    return false;
-	} finally {
-	    // cleanup
-	    if (urlConnect != null)
-		urlConnect.disconnect();
-	}
 	return true;
     }
 }

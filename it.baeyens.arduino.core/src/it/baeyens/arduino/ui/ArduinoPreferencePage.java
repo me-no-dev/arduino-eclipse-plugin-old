@@ -423,6 +423,9 @@ public class ArduinoPreferencePage extends FieldEditorPreferencePage implements 
 	case "1.6.5-r3":
 	case "1.6.5-r4":
 	case "1.6.5-r5":
+	case "1.6.6":
+	case "1.6.7":
+	case "1.6.8":
 
 	    return true;
 	default:
